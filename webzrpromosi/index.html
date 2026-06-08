@@ -15,10 +15,10 @@
     </script>
     <title>Pondok Es Teller ZR Padang | Es Teler Kalumbuk & Minuman Segar</title>
     <meta name="description"
-        content="Pondok Es Teller ZR di Kalumbuk, Kota Padang. Es teller alpukat, sop buah, es rumput laut, dan minuman segar Padang. Pesan via WhatsApp, buka 10.00-22.00.">
+        content="Pondok Es Teller ZR di Kalumbuk, Kuranji, Kota Padang. Es teller alpukat, sop buah, es rumput laut, dan minuman segar Padang. Pesan via WhatsApp, buka 10.00-22.00.">
     <link rel="canonical" href="https://estellerzrpadang.vercel.app/">
     <meta name="keywords"
-        content="es teller Padang, es teler Kalumbuk, minuman segar Padang, Pondok Es Teller ZR, es teller alpukat Padang, sop buah Padang">
+        content="es teller Padang, es teler Kalumbuk, es teler Kuranji, minuman segar Padang, Pondok Es Teller ZR, es teller alpukat Padang, sop buah Padang">
     <meta name="geo.region" content="ID-SB">
     <meta name="geo.placename" content="Kalumbuk, Padang">
     <link rel="icon" type="image/png" href="foto2/logo_zr.png">
@@ -50,7 +50,7 @@
         "Es Teler ZR Kalumbuk",
         "Pondok Es Teler ZR"
       ],
-      "description": "Pondok Es Teller ZR adalah tempat es teller dan minuman segar di Kalumbuk, Kota Padang. Menu favoritnya es teller alpukat, sop buah, dan es rumput laut.",
+      "description": "Pondok Es Teller ZR adalah tempat es teller dan minuman segar di Kalumbuk, Kuranji, Kota Padang. Menu favoritnya es teller alpukat, sop buah, dan es rumput laut.",
       "image": "https://estellerzrpadang.vercel.app/foto2/estelleroriginal.jpg",
       "@id": "https://estellerzrpadang.vercel.app/",
       "url": "https://estellerzrpadang.vercel.app/",
@@ -515,6 +515,10 @@
             animation-delay: 2s;
         }
 
+        .fresh-card:nth-child(3) {
+            animation-delay: 1s;
+        }
+
         @keyframes float {
 
             0%,
@@ -536,6 +540,21 @@
 
         .fresh-card span {
             color: rgba(255, 255, 255, 0.9);
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            margin-right: 8px;
+            border-radius: 999px;
+            background: var(--yellow);
+            box-shadow: 0 0 0 5px rgba(255, 212, 71, 0.18);
+        }
+
+        .status-dot.closed {
+            background: #ff6b5f;
+            box-shadow: 0 0 0 5px rgba(255, 107, 95, 0.18);
         }
 
         section {
@@ -682,6 +701,21 @@
             margin-top: auto;
             width: 100%;
             min-height: 48px;
+        }
+
+        .menu-actions {
+            display: grid;
+            gap: 9px;
+            margin-top: auto;
+        }
+
+        .quick-wa {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid rgba(20, 122, 63, 0.22);
+            color: var(--green-dark);
+            background: #fffdf5;
+            box-shadow: none;
         }
 
         label {
@@ -2224,6 +2258,10 @@
                         <strong>Buka 10.00 - 22.00</strong>
                         <span>Siap nemenin siang panas sampai malam santai.</span>
                     </div>
+                    <div class="fresh-card">
+                        <strong><span class="status-dot" id="openStatusDot" aria-hidden="true"></span><span id="openStatusText">Cek jam buka...</span></strong>
+                        <span id="openStatusNote">Pesanan bisa dikirim lewat WhatsApp dan akan dikonfirmasi sesuai stok.</span>
+                    </div>
                 </div>
             </div>
         </section>
@@ -2921,6 +2959,28 @@
             });
         }
 
+        function updateOpenStatus() {
+            const statusText = document.getElementById("openStatusText");
+            const statusNote = document.getElementById("openStatusNote");
+            const statusDot = document.getElementById("openStatusDot");
+            if (!statusText || !statusNote || !statusDot) return;
+
+            const now = new Date();
+            const padangTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+            const hour = padangTime.getHours();
+            const minute = padangTime.getMinutes();
+            const currentMinutes = hour * 60 + minute;
+            const opensAt = 10 * 60;
+            const closesAt = 22 * 60;
+            const isOpen = currentMinutes >= opensAt && currentMinutes < closesAt;
+
+            statusDot.classList.toggle("closed", !isOpen);
+            statusText.textContent = isOpen ? "Buka sekarang" : "Sedang tutup";
+            statusNote.textContent = isOpen
+                ? "Pesan sekarang untuk pickup atau delivery sekitar Kalumbuk, Kuranji, Siteba, dan area Padang terdekat."
+                : "Pesanan tetap bisa dikirim lewat WhatsApp, lalu dikonfirmasi saat buka pukul 10.00 WIB.";
+        }
+
         const supabaseConfig = window.ZR_SUPABASE || {};
         const hasSupabaseConfig = Boolean(
             supabaseConfig.url &&
@@ -2934,6 +2994,8 @@
             : null;
 
         // Catatan: scroll native dibiarkan default agar ringan & mudah.
+        updateOpenStatus();
+        setInterval(updateOpenStatus, 60000);
 
         function escapeHtml(value) {
             return String(value)
@@ -3065,7 +3127,10 @@
                                 ${uniqueBadges.map((badge) => `<span class="menu-pill">${escapeHtml(badge)}</span>`).join("")}
                             </div>
                             <p>${escapeHtml(menu.description || "")}</p>
-                            <button class="btn btn-green choose-menu" type="button" data-menu="${escapeHtml(menu.name)}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Tambah ke Pesanan" : "Sedang Habis"}</button>
+                            <div class="menu-actions">
+                                <button class="btn btn-green choose-menu" type="button" data-menu="${escapeHtml(menu.name)}" ${isAvailable ? "" : "disabled"}>${isAvailable ? "Tambah ke Pesanan" : "Sedang Habis"}</button>
+                                <button class="btn quick-wa quick-menu-order" type="button" data-menu="${escapeHtml(menu.name)}" ${isAvailable ? "" : "disabled"}>Pesan via WA</button>
+                            </div>
                         </div>
                     </article>
                 `;
@@ -3093,7 +3158,6 @@
             try {
                 if (window.smartBot && typeof window.smartBot.updateMenuData === 'function') {
                     window.smartBot.updateMenuData(menus);
-                    console.log('Smart Chatbot updated with latest menu data');
                 }
             } catch (error) {
                 console.warn('Failed to update chatbot menu data:', error);
@@ -3104,10 +3168,10 @@
             return Number(menuSelect.selectedOptions[0]?.dataset.price || 0);
         }
 
-        function addSelectedMenu() {
-            const menu = menuSelect.value;
-            const harga = getSelectedPrice();
-            const jumlah = Math.max(1, Number(jumlahInput.value || 1));
+        function addMenuToCart(menu, jumlah = 1) {
+            const matchedMenu = currentMenus.find((item) => item.name === menu) || defaultMenus.find((item) => item.name === menu);
+            const harga = matchedMenu ? Number(matchedMenu.price || 0) : getSelectedPrice();
+            jumlah = Math.max(1, Number(jumlah || 1));
 
             if (!menu || !harga) {
                 return;
@@ -3121,13 +3185,25 @@
                 cart.push({ menu, harga, jumlah });
             }
 
-            jumlahInput.value = 1;
             renderCart();
             trackEvent("add_to_cart", {
                 item_name: menu,
                 value: harga * jumlah,
                 currency: "IDR"
             });
+        }
+
+        function addSelectedMenu() {
+            const menu = menuSelect.value;
+            const harga = getSelectedPrice();
+            const jumlah = Math.max(1, Number(jumlahInput.value || 1));
+
+            if (!menu || !harga) {
+                return;
+            }
+
+            addMenuToCart(menu, jumlah);
+            jumlahInput.value = 1;
         }
 
         function updateCartQty(index, delta) {
@@ -3282,7 +3358,10 @@
                                 <span class="price">${formatRupiah.format(Number(menu.price || 0))}</span>
                             </div>
                             <p>${escapeHtml(menu.description || "")}</p>
-                            <button class="btn btn-green choose-menu" type="button" data-menu="${escapeHtml(menu.name)}">Tambah ke Pesanan</button>
+                            <div class="menu-actions">
+                                <button class="btn btn-green choose-menu" type="button" data-menu="${escapeHtml(menu.name)}">Tambah ke Pesanan</button>
+                                <button class="btn quick-wa quick-menu-order" type="button" data-menu="${escapeHtml(menu.name)}">Pesan via WA</button>
+                            </div>
                         </div>
                     </article>
                 `).join("");
@@ -3301,9 +3380,24 @@
             const button = event.target.closest(".choose-menu");
             if (button) {
                 menuSelect.value = button.dataset.menu;
-                addSelectedMenu();
+                addMenuToCart(button.dataset.menu, 1);
                 document.getElementById("pesan").scrollIntoView({ behavior: "smooth", block: "start" });
                 setTimeout(() => mainOrderForm.elements.nama.focus(), 450);
+                return;
+            }
+
+            const quickButton = event.target.closest(".quick-menu-order");
+            if (quickButton) {
+                const menuName = quickButton.dataset.menu;
+                const matchedMenu = currentMenus.find((item) => item.name === menuName) || defaultMenus.find((item) => item.name === menuName);
+                if (!matchedMenu) return;
+
+                openWhatsapp({
+                    items: [{ menu: matchedMenu.name, harga: Number(matchedMenu.price || 0), jumlah: 1 }],
+                    metode: "Pickup",
+                    phone: whatsappMain,
+                    catatan: "Pesan cepat dari kartu menu website."
+                });
             }
         });
 
@@ -4126,8 +4220,7 @@
                 video.classList.add('loaded');
                 if (fallback) fallback.style.animation = 'none'; // Stop kenBurns to save CPU
 
-                video.play().catch(e => {
-                    console.log("Autoplay check:", e);
+                video.play().catch(() => {
                     document.addEventListener('click', () => {
                         video.play();
                         if (fallback) fallback.style.animation = 'none';
