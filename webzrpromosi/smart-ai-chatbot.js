@@ -207,9 +207,9 @@ class SmartChatbot {
             promo: {
                 keywords: ['promo', 'diskon', 'potongan', 'sale', 'murah', 'hemat', 'voucher', 'kupon'],
                 responses: [
-                    "Untuk info promo terbaru, langsung chat WhatsApp kami ya! 🎉\n\nKadang ada promo khusus untuk pembelian ramai-ramai atau pelanggan setia lho!",
-                    "Promo spesial sering kami update di WhatsApp! 🎁\n\nFollow terus atau langsung tanya ke nomor WA kami untuk info promo terkini!",
-                    "Ada promo menarik! 🔥\n\nTapi infonya di WhatsApp ya biar lebih update. Kadang ada diskon untuk pembelian banyak!"
+                    "Untuk saat ini belum ada promo resmi dari Pondok Es Teller ZR. Kamu tetap bisa pilih menu hemat seperti Es Teller Original, Sop Buah Segar, atau Es Rumput Laut Spesial.",
+                    "Belum ada promo yang aktif saat ini. Kalau kamu ingin pesan banyak, lebih baik konfirmasi dulu lewat WhatsApp supaya stok dan estimasi pesanan bisa dicek.",
+                    "Saat ini Pondok Es Teller ZR belum menjalankan promo resmi. AE bisa bantu rekomendasikan menu minuman segar yang sesuai budget kamu."
                 ],
                 type: 'random'
             },

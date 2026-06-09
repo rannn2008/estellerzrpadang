@@ -304,3 +304,11 @@ Developed with ❤️ by AI Assistant (Kiro)
 ---
 
 **⭐ Jangan lupa beri bintang di GitHub jika website ini membantu!**
+## Google Search Console
+
+- Submit sitemap: `https://estellerzrpadang.vercel.app/sitemap.xml`
+- Pantau performa keyword lokal seperti `es teler Padang`, `es teller Padang`, `sop buah Padang`, dan `minuman segar Padang`.
+- Cek halaman dan query yang paling banyak menghasilkan impresi, lalu gunakan datanya untuk memperbarui teks menu, lokasi, dan konten halaman utama.
+- Pastikan profil Google Maps/Google Business memakai nama, alamat, jam buka, dan nomor WhatsApp yang konsisten dengan website.
+
+---
