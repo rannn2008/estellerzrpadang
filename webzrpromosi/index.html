@@ -2438,6 +2438,7 @@
                 <div class="gallery-filters" style="margin-bottom: 30px;" id="menuCategoryFilters">
                     <button class="filter-btn active" data-category="all">Semua</button>
                     <button class="filter-btn" data-category="es teller">Es Teller</button>
+                    <button class="filter-btn" data-category="es campur">Es Campur</button>
                     <button class="filter-btn" data-category="es rumput laut">Es Rumput Laut</button>
                     <button class="filter-btn" data-category="sop buah">Sop Buah</button>
                 </div>
@@ -3076,7 +3077,7 @@
                 rating: "4.7",
                 badges: ["Buah campur", "Tersedia"],
                 status: "Tersedia",
-                category: "es teller"
+                category: "es campur"
             },
             {
                 name: "Sop Buah Segar",
@@ -3199,6 +3200,29 @@
             return `${name} es teler segar Pondok Es Teller ZR Padang`;
         }
 
+        function inferMenuCategory(menu) {
+            const name = String(menu.name || "").toLowerCase();
+            const category = String(menu.category || "").toLowerCase();
+
+            if (name.includes("rumput laut") || category.includes("rumput laut")) {
+                return "es rumput laut";
+            }
+
+            if (name.includes("sop buah") || category.includes("sop buah")) {
+                return "sop buah";
+            }
+
+            if (name.includes("es campur") || name.includes("campur") || category.includes("campur")) {
+                return "es campur";
+            }
+
+            if (name.includes("teller") || name.includes("teler") || category.includes("teller") || category.includes("teler")) {
+                return "es teller";
+            }
+
+            return category || "lainnya";
+        }
+
         function normalizeMenu(menu) {
             return {
                 id: menu.id || "",
@@ -3209,7 +3233,7 @@
                 rating: menu.rating || "4.8",
                 badges: Array.isArray(menu.badges) ? menu.badges : [],
                 status: menu.status || "Tersedia",
-                category: menu.category || "es teller"
+                category: inferMenuCategory(menu)
             };
         }
 
@@ -3252,12 +3276,12 @@
             try {
                 const savedMenus = JSON.parse(localStorage.getItem(menuStorageKey));
                 if (Array.isArray(savedMenus) && savedMenus.length >= 3) {
-                    return savedMenus;
+                    return savedMenus.map(normalizeMenu);
                 }
             } catch (error) {
             }
 
-            return defaultMenus;
+            return defaultMenus.map(normalizeMenu);
         }
 
         async function renderMenuCatalog(filterCategory = "all") {
