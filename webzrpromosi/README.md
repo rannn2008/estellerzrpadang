@@ -312,3 +312,15 @@ Developed with ❤️ by AI Assistant (Kiro)
 - Pastikan profil Google Maps/Google Business memakai nama, alamat, jam buka, dan nomor WhatsApp yang konsisten dengan website.
 
 ---
+
+## Google AdSense
+
+- Daftarkan domain produksi: `https://estellerzrpadang.vercel.app/`
+- Pastikan halaman `Privacy Policy` dan `Syarat Penggunaan` bisa dibuka sebelum mengirim review AdSense.
+- Kode AdSense belum diaktifkan di website. Placeholder tersedia di bagian `<head>` halaman utama dan halaman legal.
+- Setelah akun/site disetujui dan client ID asli sudah siap, ganti komentar placeholder:
+  `<!-- Google AdSense code will be added here after approval. Do not use fake ca-pub ID. -->`
+  dengan script resmi dari Google AdSense.
+- Jangan menambahkan teks ajakan seperti "klik iklan" atau tombol palsu yang menyerupai iklan.
+
+---

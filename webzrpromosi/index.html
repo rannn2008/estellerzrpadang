@@ -13,9 +13,10 @@
         gtag('js', new Date());
         gtag('config', 'G-0ZD1WLP8SR');
     </script>
-    <title>Es Teler Padang | Pondok Es Teller ZR - Rajanya Es Kota Padang</title>
+    <!-- Google AdSense code will be added here after approval. Do not use fake ca-pub ID. -->
+    <title>Pondok Es Teller ZR Padang - Es Teller Segar dan Menu Dessert</title>
     <meta name="description"
-        content="Pondok Es Teller ZR menyediakan es teler, sop buah, es rumput laut, dan minuman segar di Padang. Cek menu, harga, lokasi, dan pesan via WhatsApp.">
+        content="Pondok Es Teller ZR Padang menyajikan es teller, sop buah, dan menu minuman segar untuk pelanggan di Padang.">
     <link rel="canonical" href="https://estellerzrpadang.vercel.app/">
     <meta name="keywords"
         content="es teller Padang, es teler Kalumbuk, es teler Kuranji, minuman segar Padang, Pondok Es Teller ZR, es teller alpukat Padang, sop buah Padang">
@@ -35,9 +36,9 @@
     <meta property="og:type" content="website">
     <meta property="og:locale" content="id_ID">
     <meta property="og:url" content="https://estellerzrpadang.vercel.app/">
-    <meta property="og:title" content="Es Teler Padang | Pondok Es Teller ZR">
+    <meta property="og:title" content="Pondok Es Teller ZR Padang - Es Teller Segar dan Menu Dessert">
     <meta property="og:description"
-        content="Rajanya Es Kota Padang untuk es teler, sop buah, es rumput laut, dan minuman segar di Kalumbuk, Kuranji, Padang.">
+        content="Pondok Es Teller ZR Padang menyajikan es teller, sop buah, es rumput laut, dan menu minuman segar untuk pelanggan di Padang.">
     <meta property="og:image" content="https://estellerzrpadang.vercel.app/foto2/estelleroriginal.jpg">
     <meta property="og:image:alt" content="Es teler segar Pondok Es Teller ZR Padang">
     <meta name="twitter:card" content="summary_large_image">
@@ -1290,21 +1291,65 @@
         }
 
         .footer {
-            padding: 28px 0;
+            padding: 34px 0;
             background: #092e20;
             color: rgba(255, 255, 255, 0.78);
         }
 
         .footer-inner {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
+            display: grid;
+            grid-template-columns: minmax(220px, 0.9fr) minmax(260px, 1.1fr) minmax(220px, 0.8fr);
+            align-items: start;
+            gap: 22px;
             font-size: 14px;
         }
 
         .footer strong {
+            display: block;
+            margin-bottom: 6px;
             color: var(--white);
+        }
+
+        .footer-brand {
+            display: grid;
+            gap: 4px;
+        }
+
+        .footer-brand span {
+            color: var(--yellow);
+            font-weight: 800;
+        }
+
+        .footer-brand small,
+        .footer-actions span {
+            color: rgba(255, 255, 255, 0.66);
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.84);
+            font-weight: 800;
+        }
+
+        .footer-links a:hover {
+            color: var(--yellow);
+        }
+
+        .footer-actions {
+            display: grid;
+            justify-items: end;
+            gap: 10px;
+            text-align: right;
+        }
+
+        .footer-actions .btn {
+            min-height: 42px;
+            padding: 10px 14px;
         }
 
         .floating-wa {
@@ -1627,6 +1672,20 @@
             .order-highlight {
                 flex-direction: column;
                 gap: 2px;
+            }
+
+            .footer-inner {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+
+            .footer-actions {
+                justify-items: center;
+                text-align: center;
             }
 
             .cart-item {
@@ -2294,10 +2353,8 @@
             <div class="nav-links">
                 <a href="#beranda">Beranda</a>
                 <a href="#menu">Menu</a>
-                <a href="#keunggulan">Keunggulan</a>
-                <a href="#galeri">Galeri</a>
-                <a href="#testimoni">Testimoni</a>
-                <a href="#lokasi">Lokasi</a>
+                <a href="#tentang">Tentang</a>
+                <a href="#lokasi">Kontak</a>
                 <a class="btn btn-primary" href="#pesan">Pesan</a>
             </div>
         </nav>
@@ -2883,9 +2940,23 @@
 
     <footer class="footer">
         <div class="container footer-inner">
-            <div><strong>Pondok Es Teller ZR</strong> - Kota Padang</div>
-            <div>Buka 10.00 - 22.00</div>
-            <a href="https://wa.me/6281374110444" target="_blank" rel="noopener">WhatsApp Utama</a>
+            <div class="footer-brand">
+                <strong>Pondok Es Teller ZR</strong>
+                <span>Rajanya Es Kota Padang</span>
+                <small>Kalumbuk, Kota Padang - Buka 10.00 - 22.00 WIB</small>
+            </div>
+            <nav class="footer-links" aria-label="Navigasi footer">
+                <a href="#beranda">Home</a>
+                <a href="#menu">Menu</a>
+                <a href="#tentang">Tentang Kami</a>
+                <a href="#lokasi">Kontak</a>
+                <a href="/privacy-policy/">Privacy Policy</a>
+                <a href="/terms/">Syarat Penggunaan</a>
+            </nav>
+            <div class="footer-actions">
+                <a class="btn btn-green" href="https://wa.me/6281374110444" target="_blank" rel="noopener">Pesan via WhatsApp</a>
+                <span>&copy; <span id="currentYear">2026</span> Pondok Es Teller ZR</span>
+            </div>
         </div>
     </footer>
 
@@ -3096,6 +3167,7 @@
         // Catatan: scroll native dibiarkan default agar ringan & mudah.
         updateOpenStatus();
         setInterval(updateOpenStatus, 60000);
+        document.getElementById("currentYear").textContent = new Date().getFullYear();
 
         function escapeHtml(value) {
             return String(value)
