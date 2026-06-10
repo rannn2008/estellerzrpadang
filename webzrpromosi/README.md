@@ -317,10 +317,8 @@ Developed with ❤️ by AI Assistant (Kiro)
 
 - Daftarkan domain produksi: `https://estellerzrpadang.vercel.app/`
 - Pastikan halaman `Privacy Policy` dan `Syarat Penggunaan` bisa dibuka sebelum mengirim review AdSense.
-- Kode AdSense belum diaktifkan di website. Placeholder tersedia di bagian `<head>` halaman utama dan halaman legal.
-- Setelah akun/site disetujui dan client ID asli sudah siap, ganti komentar placeholder:
-  `<!-- Google AdSense code will be added here after approval. Do not use fake ca-pub ID. -->`
-  dengan script resmi dari Google AdSense.
+- Kode AdSense resmi sudah dipasang di bagian `<head>` halaman utama, Privacy Policy, dan Syarat Penggunaan.
+- Client ID AdSense yang aktif: `ca-pub-1005237788667444`.
 - Jangan menambahkan teks ajakan seperti "klik iklan" atau tombol palsu yang menyerupai iklan.
 
 ---
