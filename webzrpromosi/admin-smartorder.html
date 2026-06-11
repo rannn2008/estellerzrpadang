@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin ZR SmartOrder AI | Pondok Es Teller ZR</title>
+    <meta name="description" content="Dashboard admin ZR SmartOrder AI untuk mengelola produk, order, stok, caption AI, dan laporan penjualan Pondok Es Teller ZR Padang.">
+    <link rel="icon" href="foto2/logo_zr.webp">
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --green: #128640;
+            --green-dark: #07552f;
+            --yellow: #ffd447;
+            --ink: #10251d;
+            --muted: #697970;
+            --line: #dce8df;
+            --paper: #f6fbf4;
+            --card: #ffffff;
+            --danger: #b42318;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: #f6fbf4;
+        }
+
+        a { color: inherit; text-decoration: none; }
+        .container { width: min(1240px, calc(100% - 28px)); margin: 0 auto; }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--green-dark);
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+        }
+
+        .nav {
+            min-height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 900;
+            font-size: clamp(18px, 3vw, 24px);
+        }
+
+        .brand img { width: 44px; height: 44px; object-fit: contain; }
+
+        .nav-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 14px;
+            min-height: 42px;
+            font-weight: 900;
+            cursor: pointer;
+            background: #edf7ef;
+            color: var(--green-dark);
+        }
+
+        .btn-primary { background: var(--yellow); color: #06351d; }
+        .btn-green { background: var(--green); color: #ffffff; }
+        .btn-danger { background: #ffe7e2; color: var(--danger); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        main { padding: 28px 0 48px; }
+
+        .hero {
+            background: linear-gradient(135deg, var(--green-dark), #118341);
+            color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: grid;
+            gap: 12px;
+        }
+
+        h1, h2, h3, p { margin-top: 0; }
+        h1 { font-size: clamp(32px, 5vw, 56px); line-height: 1; margin-bottom: 6px; }
+        h2 { font-size: 26px; margin-bottom: 14px; }
+        h3 { font-size: 18px; margin-bottom: 8px; }
+        p { line-height: 1.6; }
+        .muted { color: var(--muted); }
+        .hero .muted { color: #dcece2; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 0.92fr 1.08fr;
+            gap: 22px;
+            align-items: start;
+        }
+
+        .panel, .stat {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 14px 34px rgba(6, 53, 29, 0.06);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: clamp(24px, 4vw, 36px);
+            margin-top: 6px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            border: 1px solid #cddbd1;
+            border-radius: 8px;
+            padding: 12px 13px;
+            min-height: 44px;
+            font: inherit;
+            color: var(--ink);
+            background: #ffffff;
+        }
+
+        textarea { min-height: 86px; resize: vertical; }
+
+        .form-grid { display: grid; gap: 12px; }
+        .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #eef7ed;
+            color: #0a3b24;
+            font-size: 13px;
+        }
+
+        .pill {
+            display: inline-flex;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-weight: 900;
+            font-size: 12px;
+            background: #fff1ad;
+            color: #17351e;
+        }
+
+        .pill.green { background: #ddf5d2; }
+        .pill.red { background: #ffe7e2; color: var(--danger); }
+
+        .stack { display: grid; gap: 18px; }
+        .ai-output {
+            white-space: pre-wrap;
+            background: #0b2418;
+            color: #f4fff7;
+            border-radius: 8px;
+            padding: 14px;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+
+        .login-screen {
+            min-height: calc(100vh - 74px);
+            display: grid;
+            place-items: center;
+            padding: 30px 0;
+        }
+
+        .login-card {
+            width: min(460px, calc(100% - 28px));
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 24px 70px rgba(6, 53, 29, 0.13);
+        }
+
+        .hidden { display: none !important; }
+        .status { font-weight: 800; color: var(--green-dark); }
+
+        @media (max-width: 980px) {
+            .grid, .stats, .two { grid-template-columns: 1fr; }
+            .nav { align-items: flex-start; padding: 12px 0; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <nav class="container nav">
+            <a class="brand" href="smartorder.html">
+                <img src="foto2/logo_zr.webp" alt="Logo Pondok Es Teller ZR">
+                <span>Admin ZR SmartOrder AI</span>
+            </a>
+            <div class="nav-actions">
+                <a class="btn" href="smartorder.html">Client</a>
+                <a class="btn" href="index.html">Landing</a>
+                <button class="btn btn-danger hidden" id="logoutButton" type="button">Keluar</button>
+            </div>
+        </nav>
+    </header>
+
+    <section class="login-screen" id="loginScreen">
+        <form class="login-card form-grid" id="loginForm">
+            <h1 style="font-size: 36px;">Login Admin</h1>
+            <p class="muted">Gunakan akun Supabase Auth dengan role <strong>admin</strong> di tabel profiles.</p>
+            <input name="email" type="email" placeholder="Email admin" required>
+            <input name="password" type="password" placeholder="Password" required>
+            <button class="btn btn-green" type="submit">Masuk Dashboard</button>
+            <p class="status" id="loginStatus">Menunggu login.</p>
+        </form>
+    </section>
+
+    <main class="container hidden" id="dashboard">
+        <section class="hero">
+            <span class="pill">MVP Challenge</span>
+            <h1>Dashboard UMKM Pondok Es Teller ZR</h1>
+            <p class="muted">Kelola menu, stok, order masuk, dan konten promosi dengan bantuan AI. Dibuat untuk pemilik UMKM non-teknis.</p>
+            <strong id="adminIdentity">Memeriksa admin...</strong>
+        </section>
+
+        <section class="stats" aria-label="Statistik penjualan">
+            <div class="stat"><span class="muted">Order Hari Ini</span><strong id="statOrders">0</strong></div>
+            <div class="stat"><span class="muted">Pendapatan Hari Ini</span><strong id="statRevenue">Rp0</strong></div>
+            <div class="stat"><span class="muted">Menu Terlaris</span><strong id="statBest">-</strong></div>
+            <div class="stat"><span class="muted">Order Baru</span><strong id="statNew">0</strong></div>
+        </section>
+
+        <section class="grid">
+            <div class="stack">
+                <section class="panel">
+                    <h2 id="productTitle">Tambah Produk</h2>
+                    <form class="form-grid" id="productForm">
+                        <input type="hidden" name="id">
+                        <input name="name" placeholder="Nama produk" required>
+                        <div class="two">
+                            <input name="category" placeholder="Kategori: es teller, sop buah" required>
+                            <input name="price" type="number" min="0" placeholder="Harga" required>
+                        </div>
+                        <textarea name="description" placeholder="Deskripsi produk"></textarea>
+                        <input name="image_url" placeholder="URL/path gambar">
+                        <div class="two">
+                            <input name="stock" type="number" min="0" placeholder="Stok" value="0">
+                            <select name="is_available">
+                                <option value="true">Tersedia</option>
+                                <option value="false">Habis</option>
+                            </select>
+                        </div>
+                        <div class="nav-actions" style="justify-content: flex-start;">
+                            <button class="btn btn-green" type="submit">Simpan Produk</button>
+                            <button class="btn" id="cancelProductEdit" type="button">Batal Edit</button>
+                            <button class="btn" id="generateProductDesc" type="button">Buat Deskripsi AI</button>
+                        </div>
+                    </form>
+                    <p class="status" id="productStatus">Produk dibaca dari tabel products.</p>
+                </section>
+
+                <section class="panel">
+                    <h2>AI Caption Generator</h2>
+                    <div class="form-grid">
+                        <input id="captionProduct" placeholder="Nama menu">
+                        <input id="captionPrice" placeholder="Harga">
+                        <textarea id="captionDescription" placeholder="Deskripsi / rasa menu"></textarea>
+                        <input id="captionTarget" placeholder="Target promo, contoh: anak sekolah, keluarga, cuaca panas">
+                        <button class="btn btn-green" id="captionButton" type="button">Generate Caption</button>
+                        <div class="ai-output" id="captionOutput">Output caption AI muncul di sini.</div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="stack">
+                <section class="panel">
+                    <h2>Order Masuk</h2>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Item</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>Produk</h2>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Produk</th>
+                                    <th>Harga</th>
+                                    <th>Stok</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2>AI Sales Insight</h2>
+                    <p class="muted">AI membaca order yang tampil di dashboard, lalu memberi saran stok dan promo.</p>
+                    <button class="btn btn-green" id="salesInsightButton" type="button">Buat Insight Penjualan</button>
+                    <div class="ai-output" id="salesOutput" style="margin-top: 12px;">Insight AI muncul di sini.</div>
+                </section>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const config = window.ZR_SUPABASE || {};
+        const hasSupabase = Boolean(config.url && config.anonKey && window.supabase);
+        const db = hasSupabase ? window.supabase.createClient(config.url, config.anonKey) : null;
+        const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
+        let products = [];
+        let orders = [];
+        let currentUser = null;
+
+        const loginScreen = document.getElementById("loginScreen");
+        const dashboard = document.getElementById("dashboard");
+        const logoutButton = document.getElementById("logoutButton");
+
+        function escapeHtml(value) {
+            return String(value || "").replace(/[&<>"']/g, (char) => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+            }[char]));
+        }
+
+        function todayStartIso() {
+            const date = new Date();
+            date.setHours(0, 0, 0, 0);
+            return date.toISOString();
+        }
+
+        async function requireAdmin() {
+            if (!db) {
+                document.getElementById("loginStatus").textContent = "Supabase belum aktif di supabase-config.js.";
+                return;
+            }
+            const { data: sessionData } = await db.auth.getSession();
+            currentUser = sessionData.session?.user || null;
+            if (!currentUser) {
+                loginScreen.classList.remove("hidden");
+                dashboard.classList.add("hidden");
+                logoutButton.classList.add("hidden");
+                return;
+            }
+
+            const { data: profile, error } = await db.from("profiles").select("name,role").eq("id", currentUser.id).single();
+            if (error || profile?.role !== "admin") {
+                document.getElementById("loginStatus").textContent = "Akun ini bukan admin. Set role admin di tabel profiles.";
+                await db.auth.signOut();
+                return;
+            }
+
+            loginScreen.classList.add("hidden");
+            dashboard.classList.remove("hidden");
+            logoutButton.classList.remove("hidden");
+            document.getElementById("adminIdentity").textContent = `Login sebagai ${profile.name || currentUser.email} (${profile.role})`;
+            await refreshDashboard();
+        }
+
+        async function refreshDashboard() {
+            await Promise.all([loadProducts(), loadOrders()]);
+            renderStats();
+        }
+
+        async function loadProducts() {
+            const { data, error } = await db.from("products").select("*").order("created_at", { ascending: false });
+            if (error) {
+                document.getElementById("productStatus").textContent = `Gagal membaca products: ${error.message}`;
+                products = [];
+            } else {
+                products = data || [];
+            }
+            renderProducts();
+        }
+
+        async function loadOrders() {
+            const { data, error } = await db
+                .from("orders")
+                .select("*, order_items(*)")
+                .order("created_at", { ascending: false })
+                .limit(50);
+            orders = error ? [] : (data || []);
+            renderOrders();
+        }
+
+        function renderStats() {
+            const today = new Date(todayStartIso());
+            const todayOrders = orders.filter((order) => new Date(order.created_at) >= today);
+            const revenue = todayOrders
+                .filter((order) => order.status !== "cancelled")
+                .reduce((sum, order) => sum + Number(order.total_price || 0), 0);
+            const itemMap = new Map();
+            todayOrders.forEach((order) => (order.order_items || []).forEach((item) => {
+                itemMap.set(item.product_name, (itemMap.get(item.product_name) || 0) + Number(item.qty || 0));
+            }));
+            const best = [...itemMap.entries()].sort((a, b) => b[1] - a[1])[0];
+            document.getElementById("statOrders").textContent = todayOrders.length;
+            document.getElementById("statRevenue").textContent = rupiah.format(revenue);
+            document.getElementById("statBest").textContent = best ? best[0] : "-";
+            document.getElementById("statNew").textContent = orders.filter((order) => order.status === "new").length;
+        }
+
+        function renderOrders() {
+            const body = document.getElementById("ordersBody");
+            body.innerHTML = orders.map((order) => {
+                const items = (order.order_items || []).map((item) => `${escapeHtml(item.product_name)} x${item.qty}`).join("<br>") || "-";
+                return `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(order.customer_name)}</strong><br>
+                            <span class="muted">${escapeHtml(order.phone || "-")}<br>${escapeHtml(order.order_type || "-")}</span>
+                        </td>
+                        <td>${items}<br><span class="muted">${escapeHtml(order.notes || "")}</span></td>
+                        <td><strong>${rupiah.format(Number(order.total_price || 0))}</strong></td>
+                        <td>
+                            <select class="order-status" data-id="${escapeHtml(order.id)}">
+                                ${["new", "process", "done", "cancelled"].map((status) => `<option value="${status}" ${order.status === status ? "selected" : ""}>${status}</option>`).join("")}
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            }).join("") || `<tr><td colspan="4">Belum ada order.</td></tr>`;
+        }
+
+        function renderProducts() {
+            const body = document.getElementById("productsBody");
+            body.innerHTML = products.map((product) => `
+                <tr>
+                    <td>
+                        <strong>${escapeHtml(product.name)}</strong><br>
+                        <span class="muted">${escapeHtml(product.category || "-")}</span>
+                    </td>
+                    <td>${rupiah.format(Number(product.price || 0))}</td>
+                    <td>
+                        <span class="pill ${product.is_available ? "green" : "red"}">${product.is_available ? "Tersedia" : "Habis"}</span>
+                        <br><span class="muted">Stok ${Number(product.stock || 0)}</span>
+                    </td>
+                    <td>
+                        <button class="btn edit-product" data-id="${escapeHtml(product.id)}" type="button">Edit</button>
+                        <button class="btn btn-danger delete-product" data-id="${escapeHtml(product.id)}" type="button">Hapus</button>
+                    </td>
+                </tr>
+            `).join("") || `<tr><td colspan="4">Belum ada produk.</td></tr>`;
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!db) return;
+            const form = new FormData(event.currentTarget);
+            const { error } = await db.auth.signInWithPassword({
+                email: form.get("email"),
+                password: form.get("password")
+            });
+            document.getElementById("loginStatus").textContent = error ? `Login gagal: ${error.message}` : "Login berhasil, memeriksa role...";
+            await requireAdmin();
+        });
+
+        logoutButton.addEventListener("click", async () => {
+            if (db) await db.auth.signOut();
+            currentUser = null;
+            loginScreen.classList.remove("hidden");
+            dashboard.classList.add("hidden");
+            logoutButton.classList.add("hidden");
+        });
+
+        document.getElementById("productForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = new FormData(event.currentTarget);
+            const id = form.get("id");
+            const payload = {
+                name: form.get("name").trim(),
+                category: form.get("category").trim().toLowerCase(),
+                price: Number(form.get("price") || 0),
+                description: form.get("description").trim(),
+                image_url: form.get("image_url").trim() || "foto2/estelleroriginal.webp",
+                stock: Number(form.get("stock") || 0),
+                is_available: form.get("is_available") === "true"
+            };
+            const request = id
+                ? db.from("products").update(payload).eq("id", id)
+                : db.from("products").insert(payload);
+            const { error } = await request;
+            document.getElementById("productStatus").textContent = error ? `Gagal simpan: ${error.message}` : "Produk berhasil disimpan.";
+            if (!error) {
+                event.currentTarget.reset();
+                event.currentTarget.elements.id.value = "";
+                document.getElementById("productTitle").textContent = "Tambah Produk";
+                await loadProducts();
+            }
+        });
+
+        document.getElementById("cancelProductEdit").addEventListener("click", () => {
+            document.getElementById("productForm").reset();
+            document.getElementById("productForm").elements.id.value = "";
+            document.getElementById("productTitle").textContent = "Tambah Produk";
+        });
+
+        document.addEventListener("click", async (event) => {
+            const edit = event.target.closest(".edit-product");
+            if (edit) {
+                const product = products.find((item) => String(item.id) === String(edit.dataset.id));
+                if (!product) return;
+                const form = document.getElementById("productForm");
+                form.elements.id.value = product.id;
+                form.elements.name.value = product.name || "";
+                form.elements.category.value = product.category || "";
+                form.elements.price.value = product.price || 0;
+                form.elements.description.value = product.description || "";
+                form.elements.image_url.value = product.image_url || "";
+                form.elements.stock.value = product.stock || 0;
+                form.elements.is_available.value = String(product.is_available !== false);
+                document.getElementById("productTitle").textContent = "Edit Produk";
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+
+            const remove = event.target.closest(".delete-product");
+            if (remove && confirm("Hapus produk ini?")) {
+                const { error } = await db.from("products").delete().eq("id", remove.dataset.id);
+                document.getElementById("productStatus").textContent = error ? `Gagal hapus: ${error.message}` : "Produk dihapus.";
+                await loadProducts();
+            }
+        });
+
+        document.addEventListener("change", async (event) => {
+            const select = event.target.closest(".order-status");
+            if (!select) return;
+            const { error } = await db.from("orders").update({ status: select.value }).eq("id", select.dataset.id);
+            if (error) alert(`Gagal update status: ${error.message}`);
+            await loadOrders();
+            renderStats();
+        });
+
+        async function callAi(payload, outputId) {
+            const output = document.getElementById(outputId);
+            output.textContent = "AI sedang memproses...";
+            try {
+                const response = await fetch("/api/ai", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ...payload, menus: products, userId: currentUser?.id })
+                });
+                const data = await response.json();
+                output.textContent = data.result || data.error || "AI belum menghasilkan output.";
+            } catch (error) {
+                output.textContent = "Endpoint AI belum tersambung.";
+            }
+        }
+
+        document.getElementById("captionButton").addEventListener("click", () => {
+            callAi({
+                feature: "caption-generator",
+                productName: document.getElementById("captionProduct").value,
+                price: document.getElementById("captionPrice").value,
+                description: document.getElementById("captionDescription").value,
+                target: document.getElementById("captionTarget").value
+            }, "captionOutput");
+        });
+
+        document.getElementById("generateProductDesc").addEventListener("click", async () => {
+            const form = document.getElementById("productForm");
+            const outputId = "captionOutput";
+            await callAi({
+                feature: "product-description",
+                productName: form.elements.name.value,
+                ingredients: form.elements.description.value || form.elements.category.value
+            }, outputId);
+            form.elements.description.value = document.getElementById(outputId).textContent;
+        });
+
+        document.getElementById("salesInsightButton").addEventListener("click", () => {
+            callAi({ feature: "sales-insight", orders }, "salesOutput");
+        });
+
+        requireAdmin();
+    </script>
+</body>
+</html>

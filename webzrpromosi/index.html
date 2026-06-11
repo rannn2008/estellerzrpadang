@@ -1555,6 +1555,53 @@
             border: 2px solid white;
         }
 
+        .smartorder-section {
+            background: #0b2418;
+            color: #ffffff;
+            padding: 72px 0;
+        }
+
+        .smartorder-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
+            gap: 28px;
+            align-items: center;
+        }
+
+        .smartorder-section h2,
+        .smartorder-section p {
+            color: #ffffff;
+        }
+
+        .smartorder-section p {
+            color: #dbe9df;
+        }
+
+        .smartorder-points {
+            display: grid;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .smartorder-points span {
+            display: block;
+            background: rgba(255, 212, 71, 0.16);
+            color: #fff3a8;
+            border-radius: 999px;
+            padding: 10px 12px;
+            font-weight: 900;
+        }
+
+        .smartorder-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
         /* Responsive mobile fixes */
         @media (max-width: 900px) {
             .nav {
@@ -2559,6 +2606,30 @@
                     <span>Sop buah Padang</span>
                     <span>Es rumput laut Padang</span>
                     <span>Rajanya Es Kota Padang</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="smartorder-section" id="smartorder-ai">
+            <div class="container smartorder-grid">
+                <div>
+                    <p class="eyebrow">MVP IDCamp Developer Challenge</p>
+                    <h2>Tentang ZR SmartOrder AI</h2>
+                    <p>ZR SmartOrder AI adalah pengembangan digital untuk Pondok Es Teller ZR Padang agar UMKM kuliner
+                        bisa mengelola pesanan, stok, customer service, promosi, dan laporan penjualan dengan bantuan
+                        Generative AI.</p>
+                    <p>Masalah seperti pencatatan manual, promosi yang sulit konsisten, dan respon pelanggan yang lambat
+                        dibantu lewat AE Assistant, dashboard admin, caption generator, dan sales insight sederhana.</p>
+                    <div class="smartorder-actions">
+                        <a class="btn btn-primary" href="smartorder.html">Coba SmartOrder</a>
+                        <a class="btn btn-light" href="admin-smartorder.html">Dashboard Admin</a>
+                    </div>
+                </div>
+                <div class="smartorder-points" aria-label="Dampak ZR SmartOrder AI untuk UMKM">
+                    <span>Partner UMKM: Pondok Es Teller ZR Padang</span>
+                    <span>AI untuk customer service dan rekomendasi menu</span>
+                    <span>Order dan produk tersimpan di Supabase</span>
+                    <span>Laporan penjualan mudah dibaca pemilik usaha</span>
                 </div>
             </div>
         </section>
