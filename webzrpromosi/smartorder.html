@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZR SmartOrder AI | Pesan Es Teller ZR Padang</title>
+    <meta name="description" content="ZR SmartOrder AI membantu pelanggan Pondok Es Teller ZR Padang melihat menu, bertanya ke AE Assistant, dan membuat pesanan berbasis Supabase.">
+    <link rel="icon" href="foto2/logo_zr.webp">
+    <script src="supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --green: #128640;
+            --green-dark: #07552f;
+            --yellow: #ffd447;
+            --ink: #10251d;
+            --muted: #64746b;
+            --line: #dde8df;
+            --paper: #fffdf2;
+            --card: #ffffff;
+            --danger: #b42318;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--ink);
+            background: linear-gradient(180deg, #fff8d9 0%, #f8fff5 44%, #ffffff 100%);
+            min-height: 100vh;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .container {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--green-dark);
+            color: #ffffff;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+        }
+
+        .nav {
+            min-height: 74px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 900;
+            font-size: clamp(18px, 3vw, 24px);
+        }
+
+        .brand img {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-weight: 900;
+            cursor: pointer;
+            background: #edf7ef;
+            color: var(--green-dark);
+            min-height: 44px;
+        }
+
+        .btn-primary { background: var(--yellow); color: #06351d; }
+        .btn-green { background: var(--green); color: #ffffff; }
+        .btn-danger { background: #ffe8e5; color: var(--danger); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        .hero {
+            padding: 62px 0 34px;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+            gap: 26px;
+            align-items: stretch;
+        }
+
+        .hero h1 {
+            margin: 12px 0 14px;
+            font-size: clamp(42px, 7vw, 78px);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .hero p {
+            margin: 0;
+            color: #315241;
+            font-size: 18px;
+            line-height: 1.7;
+            max-width: 760px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            width: fit-content;
+            background: rgba(18, 134, 64, 0.12);
+            color: var(--green-dark);
+            border: 1px solid rgba(18, 134, 64, 0.18);
+            border-radius: 999px;
+            padding: 8px 12px;
+            font-weight: 900;
+            margin-bottom: 14px;
+        }
+
+        .panel, .menu-card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            box-shadow: 0 18px 46px rgba(7, 85, 47, 0.08);
+        }
+
+        .panel { padding: 22px; }
+
+        .assistant-card {
+            display: grid;
+            gap: 14px;
+            align-content: start;
+        }
+
+        .assistant-log {
+            height: 280px;
+            overflow: auto;
+            background: #f8fbf7;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 14px;
+            display: grid;
+            align-content: start;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px 12px;
+            border-radius: 8px;
+            line-height: 1.55;
+            font-size: 14px;
+        }
+
+        .message.bot { background: #edf7ef; color: #153726; }
+        .message.user { background: var(--green); color: #ffffff; justify-self: end; max-width: 88%; }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            border: 1px solid #cddbd1;
+            border-radius: 8px;
+            padding: 12px 13px;
+            min-height: 44px;
+            font: inherit;
+            color: var(--ink);
+            background: #ffffff;
+        }
+
+        textarea { min-height: 86px; resize: vertical; }
+
+        .section {
+            padding: 34px 0;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: end;
+            margin-bottom: 18px;
+        }
+
+        h2 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 44px); }
+        h3 { margin: 0; font-size: 21px; }
+        p { line-height: 1.65; }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter {
+            border: 1px solid var(--green);
+            color: var(--green-dark);
+            background: #ffffff;
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .filter.active {
+            background: var(--green);
+            color: #ffffff;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .menu-card {
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 210px 1fr;
+        }
+
+        .menu-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #eef5ec;
+        }
+
+        .menu-body {
+            padding: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .menu-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .price {
+            background: #e3f6d6;
+            color: #06351d;
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pill {
+            background: #fff1ad;
+            color: #073b24;
+            border-radius: 999px;
+            padding: 7px 10px;
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .pill.off { background: #ffe2dd; color: var(--danger); }
+        .muted { color: var(--muted); margin: 0; }
+
+        .cart-list {
+            display: grid;
+            gap: 10px;
+            margin: 16px 0;
+        }
+
+        .cart-item {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            display: grid;
+            gap: 8px;
+            background: #fbfdf9;
+        }
+
+        .cart-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .qty {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #ffffff;
+            color: var(--green-dark);
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 22px;
+            font-weight: 900;
+            border-top: 1px solid var(--line);
+            padding-top: 14px;
+            margin-top: 12px;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 16px;
+            border: 1px solid rgba(18,134,64,0.28);
+            background: #effbf1;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .auth-mini {
+            display: grid;
+            gap: 10px;
+            background: #0b5b33;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .auth-mini input { border-color: rgba(255,255,255,0.4); }
+
+        .challenge {
+            background: #0b2418;
+            color: #ffffff;
+            border-radius: 8px;
+            padding: 22px;
+        }
+
+        .challenge p { color: #dbe9df; }
+
+        @media (max-width: 900px) {
+            .hero-grid, .layout, .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav { align-items: flex-start; padding: 12px 0; }
+            .hero { padding-top: 38px; }
+            .input-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <nav class="container nav" aria-label="Navigasi ZR SmartOrder AI">
+            <a class="brand" href="index.html">
+                <img src="foto2/logo_zr.webp" alt="Logo Pondok Es Teller ZR">
+                <span>ZR SmartOrder AI</span>
+            </a>
+            <div class="nav-actions">
+                <a class="btn" href="index.html">Landing</a>
+                <a class="btn" href="admin-smartorder.html">Admin</a>
+                <a class="btn btn-primary" href="#checkout">Checkout</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container hero-grid">
+                <div>
+                    <span class="eyebrow">MVP IDCamp Developer Challenge</span>
+                    <h1>Pesan Minuman Segar dengan Bantuan AE Assistant</h1>
+                    <p>ZR SmartOrder AI membantu pelanggan Pondok Es Teller ZR Padang melihat menu dari database, mendapat rekomendasi, lalu membuat pesanan yang masuk ke Supabase.</p>
+                </div>
+                <div class="panel assistant-card">
+                    <h2 style="font-size: 28px;">AE Assistant</h2>
+                    <div class="assistant-log" id="assistantLog">
+                        <div class="message bot">Halo, aku AE. Tanya menu segar, rekomendasi, atau cara pesan di sini ya.</div>
+                    </div>
+                    <div class="input-row">
+                        <input id="assistantInput" type="text" placeholder="Contoh: rekomendasi yang creamy apa?">
+                        <button class="btn btn-green" id="askAiButton" type="button">Tanya</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container challenge">
+                <span class="eyebrow" style="background: rgba(255,212,71,0.16); color: #ffdf62;">Tentang ZR SmartOrder AI</span>
+                <h2>Digitalisasi UMKM Kuliner Pondok Es Teller ZR Padang</h2>
+                <p>Masalah UMKM seperti pencatatan manual, promosi yang sulit konsisten, dan respon pelanggan yang lambat dibantu dengan AI untuk customer service, caption promosi, order digital, dan laporan penjualan sederhana.</p>
+                <p>Partner UMKM: Pondok Es Teller ZR Padang. Dampaknya adalah membantu usaha kuliner lokal go digital dengan cara yang tetap mudah dipakai pemilik usaha non-teknis.</p>
+            </div>
+        </section>
+
+        <section class="section" id="menu">
+            <div class="container">
+                <div class="section-head">
+                    <div>
+                        <h2>Menu dari Supabase</h2>
+                        <p class="muted">Filter kategori, cek stok, lalu tambahkan ke keranjang.</p>
+                    </div>
+                    <div class="filters" id="filters"></div>
+                </div>
+                <div class="layout">
+                    <div class="menu-grid" id="productGrid"></div>
+                    <aside class="panel" id="checkout">
+                        <h2 style="font-size: 30px;">Keranjang</h2>
+                        <div class="cart-list" id="cartList">
+                            <p class="muted">Belum ada menu dipilih.</p>
+                        </div>
+                        <div class="total">
+                            <span>Total</span>
+                            <span id="cartTotal">Rp0</span>
+                        </div>
+                        <form class="form-grid" id="orderForm">
+                            <input name="customer_name" placeholder="Nama pelanggan" required>
+                            <input name="phone" placeholder="Nomor WhatsApp">
+                            <select name="order_type" id="orderType">
+                                <option value="pickup">Pickup / Ambil sendiri</option>
+                                <option value="delivery">Delivery</option>
+                            </select>
+                            <textarea name="address" id="addressField" placeholder="Alamat delivery, kosongkan jika pickup"></textarea>
+                            <textarea name="notes" placeholder="Catatan pesanan"></textarea>
+                            <button class="btn btn-green" type="submit">Simpan Order ke Supabase</button>
+                        </form>
+                        <div class="result-box" id="orderResult"></div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="container layout">
+                <div class="panel">
+                    <h2 style="font-size: 30px;">Login Customer</h2>
+                    <p class="muted">Opsional untuk MVP. Customer bisa membuat akun client Supabase agar siap dikembangkan menjadi riwayat order.</p>
+                    <div class="form-grid">
+                        <input id="clientName" placeholder="Nama">
+                        <input id="clientEmail" type="email" placeholder="Email">
+                        <input id="clientPassword" type="password" placeholder="Password minimal 6 karakter">
+                        <div class="nav-actions" style="justify-content: flex-start;">
+                            <button class="btn btn-green" id="clientSignup" type="button">Daftar Client</button>
+                            <button class="btn" id="clientLogin" type="button">Login</button>
+                            <button class="btn btn-danger" id="clientLogout" type="button">Logout</button>
+                        </div>
+                        <p class="muted" id="clientStatus">Belum login.</p>
+                    </div>
+                </div>
+                <div class="auth-mini">
+                    <h2 style="font-size: 30px;">Untuk Admin</h2>
+                    <p>Dashboard admin tersedia untuk mengelola produk, stok, order masuk, status pesanan, caption AI, deskripsi produk AI, dan sales insight.</p>
+                    <a class="btn btn-primary" href="admin-smartorder.html">Buka Dashboard Admin</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const config = window.ZR_SUPABASE || {};
+        const hasSupabase = Boolean(config.url && config.anonKey && window.supabase);
+        const db = hasSupabase ? window.supabase.createClient(config.url, config.anonKey) : null;
+        const fallbackProducts = [
+            { id: "local-1", name: "Es Teller Original", category: "es teller", price: 10000, description: "Racikan klasik berisi buah segar.", image_url: "foto2/estelleroriginal.webp", is_available: true, stock: 30 },
+            { id: "local-2", name: "Es Campur Premium", category: "es campur", price: 15000, description: "Es campur segar dengan isian favorit.", image_url: "foto2/display-esteller.jpg.webp", is_available: true, stock: 20 },
+            { id: "local-3", name: "Es Rumput Laut Premium", category: "es rumput laut", price: 13000, description: "Paduan rumput laut dan kuah segar.", image_url: "foto2/alpukat-segar.jpg.webp", is_available: true, stock: 18 },
+            { id: "local-4", name: "Sop Buah Original", category: "sop buah", price: 15000, description: "Potongan buah segar dengan kuah susu.", image_url: "foto2/buah-segar.jpg.webp", is_available: true, stock: 16 }
+        ];
+        let products = [];
+        let activeCategory = "semua";
+        const cart = [];
+        const rupiah = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 });
+
+        const productGrid = document.getElementById("productGrid");
+        const filters = document.getElementById("filters");
+        const cartList = document.getElementById("cartList");
+        const cartTotal = document.getElementById("cartTotal");
+        const orderResult = document.getElementById("orderResult");
+
+        function escapeHtml(value) {
+            return String(value || "").replace(/[&<>"']/g, (char) => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+            }[char]));
+        }
+
+        function addMessage(role, text) {
+            const log = document.getElementById("assistantLog");
+            const item = document.createElement("div");
+            item.className = `message ${role}`;
+            item.textContent = text;
+            log.appendChild(item);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function loadProducts() {
+            if (!db) {
+                products = fallbackProducts;
+                render();
+                return;
+            }
+
+            const { data, error } = await db
+                .from("products")
+                .select("id,name,category,price,description,image_url,is_available,stock")
+                .order("created_at", { ascending: false });
+
+            if (error) {
+                console.warn(error);
+                products = fallbackProducts;
+                addMessage("bot", "Menu Supabase belum siap, jadi AE menampilkan data contoh lokal dulu.");
+            } else {
+                products = data && data.length ? data : fallbackProducts;
+            }
+            render();
+        }
+
+        function renderFilters() {
+            const categories = ["semua", ...new Set(products.map((item) => item.category || "lainnya"))];
+            filters.innerHTML = categories.map((category) => `
+                <button class="filter ${category === activeCategory ? "active" : ""}" data-category="${escapeHtml(category)}">${escapeHtml(category)}</button>
+            `).join("");
+        }
+
+        function renderProducts() {
+            const visible = activeCategory === "semua"
+                ? products
+                : products.filter((item) => (item.category || "lainnya") === activeCategory);
+
+            productGrid.innerHTML = visible.map((item) => {
+                const available = item.is_available !== false && Number(item.stock || 0) > 0;
+                return `
+                    <article class="menu-card">
+                        <img src="${escapeHtml(item.image_url || "foto2/estelleroriginal.webp")}" alt="${escapeHtml(item.name)}">
+                        <div class="menu-body">
+                            <div class="menu-top">
+                                <h3>${escapeHtml(item.name)}</h3>
+                                <span class="price">${rupiah.format(Number(item.price || 0))}</span>
+                            </div>
+                            <div class="pill-row">
+                                <span class="pill">${escapeHtml(item.category || "menu")}</span>
+                                <span class="pill ${available ? "" : "off"}">${available ? `Stok ${Number(item.stock || 0)}` : "Habis"}</span>
+                            </div>
+                            <p class="muted">${escapeHtml(item.description || "Menu segar Pondok Es Teller ZR.")}</p>
+                            <button class="btn btn-green add-cart" data-id="${escapeHtml(item.id)}" ${available ? "" : "disabled"}>${available ? "Tambah ke Keranjang" : "Sedang Habis"}</button>
+                        </div>
+                    </article>
+                `;
+            }).join("") || `<div class="panel"><p class="muted">Belum ada produk pada kategori ini.</p></div>`;
+        }
+
+        function renderCart() {
+            if (!cart.length) {
+                cartList.innerHTML = `<p class="muted">Belum ada menu dipilih.</p>`;
+            } else {
+                cartList.innerHTML = cart.map((item, index) => `
+                    <div class="cart-item">
+                        <div class="cart-line">
+                            <strong>${escapeHtml(item.name)}</strong>
+                            <strong>${rupiah.format(item.price * item.qty)}</strong>
+                        </div>
+                        <div class="cart-line">
+                            <span class="muted">${item.qty} x ${rupiah.format(item.price)}</span>
+                            <div class="cart-actions">
+                                <button class="qty" data-cart="${index}" data-delta="-1" type="button">-</button>
+                                <strong>${item.qty}</strong>
+                                <button class="qty" data-cart="${index}" data-delta="1" type="button">+</button>
+                                <button class="qty" data-remove="${index}" type="button">x</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join("");
+            }
+            cartTotal.textContent = rupiah.format(cart.reduce((sum, item) => sum + item.price * item.qty, 0));
+        }
+
+        function render() {
+            renderFilters();
+            renderProducts();
+            renderCart();
+        }
+
+        document.addEventListener("click", (event) => {
+            const filter = event.target.closest(".filter");
+            if (filter) {
+                activeCategory = filter.dataset.category;
+                render();
+                return;
+            }
+
+            const add = event.target.closest(".add-cart");
+            if (add) {
+                const product = products.find((item) => String(item.id) === String(add.dataset.id));
+                if (!product) return;
+                const existing = cart.find((item) => String(item.id) === String(product.id));
+                if (existing) existing.qty += 1;
+                else cart.push({ id: product.id, name: product.name, price: Number(product.price || 0), qty: 1 });
+                renderCart();
+                return;
+            }
+
+            const qty = event.target.closest("[data-cart]");
+            if (qty) {
+                const index = Number(qty.dataset.cart);
+                cart[index].qty += Number(qty.dataset.delta);
+                if (cart[index].qty <= 0) cart.splice(index, 1);
+                renderCart();
+                return;
+            }
+
+            const remove = event.target.closest("[data-remove]");
+            if (remove) {
+                cart.splice(Number(remove.dataset.remove), 1);
+                renderCart();
+            }
+        });
+
+        document.getElementById("askAiButton").addEventListener("click", async () => {
+            const input = document.getElementById("assistantInput");
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = "";
+            addMessage("user", message);
+            addMessage("bot", "AE sedang membaca menu...");
+
+            try {
+                const response = await fetch("/api/ai", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ feature: "customer-assistant", message, menus: products })
+                });
+                const data = await response.json();
+                document.querySelector("#assistantLog .message.bot:last-child").textContent = data.result || data.error || "AE belum bisa menjawab.";
+            } catch (error) {
+                document.querySelector("#assistantLog .message.bot:last-child").textContent = "AE belum tersambung. Coba lagi sebentar.";
+            }
+        });
+
+        document.getElementById("orderForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!cart.length) {
+                alert("Keranjang masih kosong.");
+                return;
+            }
+            const form = new FormData(event.currentTarget);
+            const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            const orderPayload = {
+                customer_name: form.get("customer_name").trim(),
+                phone: form.get("phone").trim(),
+                order_type: form.get("order_type"),
+                address: form.get("address").trim(),
+                notes: form.get("notes").trim(),
+                total_price: total,
+                status: "new"
+            };
+
+            if (!db) {
+                alert("Supabase belum aktif. Isi supabase-config.js lebih dulu.");
+                return;
+            }
+
+            const { data: order, error } = await db.from("orders").insert(orderPayload).select("id").single();
+            if (error) {
+                alert(`Gagal menyimpan order: ${error.message}`);
+                return;
+            }
+
+            const items = cart.map((item) => ({
+                order_id: order.id,
+                product_id: String(item.id).startsWith("local-") ? null : item.id,
+                product_name: item.name,
+                qty: item.qty,
+                price: item.price,
+                subtotal: item.qty * item.price
+            }));
+            const { error: itemError } = await db.from("order_items").insert(items);
+            if (itemError) {
+                alert(`Order tersimpan, tapi item gagal: ${itemError.message}`);
+                return;
+            }
+
+            const lines = cart.map((item, index) => `${index + 1}. ${item.name} x${item.qty} = ${rupiah.format(item.price * item.qty)}`).join("%0A");
+            const message = `Halo Pondok Es Teller ZR, saya ingin pesan:%0A${lines}%0A%0ATotal: ${encodeURIComponent(rupiah.format(total))}%0ANama: ${encodeURIComponent(orderPayload.customer_name)}%0AMetode: ${orderPayload.order_type}%0AAlamat: ${encodeURIComponent(orderPayload.address || "-")}%0ACatatan: ${encodeURIComponent(orderPayload.notes || "-")}`;
+            const waUrl = `https://wa.me/6281374110444?text=${message}`;
+
+            orderResult.style.display = "block";
+            orderResult.innerHTML = `
+                <strong>Order berhasil masuk ke Supabase.</strong>
+                <p class="muted">ID Order: ${escapeHtml(order.id)}</p>
+                <a class="btn btn-primary" href="${waUrl}" target="_blank" rel="noopener">Kirim Ringkasan ke WhatsApp Admin</a>
+            `;
+            cart.splice(0, cart.length);
+            renderCart();
+            event.currentTarget.reset();
+        });
+
+        async function updateClientStatus() {
+            if (!db) return;
+            const { data } = await db.auth.getSession();
+            document.getElementById("clientStatus").textContent = data.session
+                ? `Login sebagai ${data.session.user.email}`
+                : "Belum login.";
+        }
+
+        document.getElementById("clientSignup").addEventListener("click", async () => {
+            if (!db) return alert("Supabase belum aktif.");
+            const email = document.getElementById("clientEmail").value.trim();
+            const password = document.getElementById("clientPassword").value;
+            const name = document.getElementById("clientName").value.trim();
+            const { error } = await db.auth.signUp({ email, password, options: { data: { name, role: "client" } } });
+            document.getElementById("clientStatus").textContent = error ? `Gagal daftar: ${error.message}` : "Akun client dibuat. Cek email jika konfirmasi aktif.";
+        });
+
+        document.getElementById("clientLogin").addEventListener("click", async () => {
+            if (!db) return alert("Supabase belum aktif.");
+            const email = document.getElementById("clientEmail").value.trim();
+            const password = document.getElementById("clientPassword").value;
+            const { error } = await db.auth.signInWithPassword({ email, password });
+            document.getElementById("clientStatus").textContent = error ? `Login gagal: ${error.message}` : "Login berhasil.";
+            updateClientStatus();
+        });
+
+        document.getElementById("clientLogout").addEventListener("click", async () => {
+            if (!db) return;
+            await db.auth.signOut();
+            updateClientStatus();
+        });
+
+        loadProducts();
+        updateClientStatus();
+    </script>
+</body>
+</html>
