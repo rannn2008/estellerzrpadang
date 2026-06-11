@@ -1754,11 +1754,11 @@
            ========================================== */
         body.dark-mode {
             --cream: #1a1a1a;
-            --white: #2d2d2d;
-            --ink: #e8e8e8;
-            --muted: #b0b0b0;
-            --line: rgba(255, 255, 255, 0.1);
-            --green-soft: #1a3d2a;
+            --white: #ffffff;
+            --ink: #18332a;
+            --muted: #64756b;
+            --line: rgba(24, 51, 42, 0.14);
+            --green-soft: #e8f8d9;
             background: #1a1a1a;
             color: #e8e8e8;
         }
@@ -1825,8 +1825,9 @@
         body.dark-mode .location-info,
         body.dark-mode .order-box,
         body.dark-mode .testimonial-card {
-            background: #2d2d2d;
-            border-color: rgba(255, 255, 255, 0.1);
+            background: #ffffff;
+            border-color: rgba(24, 51, 42, 0.14);
+            color: #18332a;
         }
 
         body.dark-mode .local-intro {
@@ -1884,19 +1885,21 @@
         body.dark-mode input,
         body.dark-mode select,
         body.dark-mode textarea {
-            background: #1a1a1a;
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #e8e8e8;
+            background: #fffdf5;
+            border-color: rgba(24, 51, 42, 0.14);
+            color: #18332a;
         }
 
         body.dark-mode .cart-empty,
         body.dark-mode .cart-item {
-            background: #1a1a1a;
-            border-color: rgba(255, 255, 255, 0.1);
+            background: #fffdf5;
+            border-color: rgba(24, 51, 42, 0.14);
+            color: #18332a;
         }
 
         body.dark-mode .order-summary {
-            background: linear-gradient(135deg, rgba(20, 122, 63, 0.15), rgba(183, 224, 68, 0.1));
+            background: linear-gradient(135deg, rgba(20, 122, 63, 0.08), rgba(183, 224, 68, 0.16));
+            color: #18332a;
         }
 
         body.dark-mode .skeleton {
@@ -1906,27 +1909,76 @@
         }
 
         body.dark-mode .ai-window {
-            background: #2d2d2d;
-            border-color: rgba(255, 255, 255, 0.1);
+            background: #ffffff;
+            border-color: rgba(24, 51, 42, 0.14);
         }
 
         body.dark-mode .ai-content {
-            background: #1a1a1a;
+            background: #fcfcfc;
         }
 
         body.dark-mode .ai-msg.bot {
-            background: #3a3a3a;
-            color: #e8e8e8;
+            background: #f0f0f0;
+            color: #333333;
         }
 
         body.dark-mode .ai-opt {
-            background: #2d2d2d;
-            border-color: rgba(255, 255, 255, 0.15);
-            color: #e8e8e8;
+            background: #ffffff;
+            border-color: #dddddd;
+            color: #18332a;
         }
 
         body.dark-mode .ai-opt:hover {
-            background: #3a3a3a;
+            background: #f5f5f5;
+        }
+
+        body.dark-mode .menu-card,
+        body.dark-mode .menu-card h3,
+        body.dark-mode .location-info,
+        body.dark-mode .location-info h3,
+        body.dark-mode .order-box,
+        body.dark-mode .order-box label,
+        body.dark-mode .wide-form,
+        body.dark-mode .wide-form label,
+        body.dark-mode .testimonial-card,
+        body.dark-mode .testimonial-card strong,
+        body.dark-mode .cart-empty,
+        body.dark-mode .cart-item,
+        body.dark-mode .cart-name,
+        body.dark-mode .summary-row,
+        body.dark-mode .review-form-wrapper h3 {
+            color: #18332a;
+        }
+
+        body.dark-mode .menu-card p,
+        body.dark-mode .location-info .info-item,
+        body.dark-mode .cart-detail,
+        body.dark-mode .testimonial-card p,
+        body.dark-mode .review-form-wrapper p,
+        body.dark-mode .order-helper {
+            color: #64756b;
+        }
+
+        body.dark-mode .btn-green,
+        body.dark-mode .choose-menu {
+            color: #ffffff;
+            background: #147a3f;
+        }
+
+        body.dark-mode .quick-wa {
+            color: #0d4f30;
+            background: #fffdf5;
+        }
+
+        body.dark-mode .btn-light {
+            color: #0d4f30;
+            background: #ffffff;
+            border-color: rgba(255, 255, 255, 0.54);
+        }
+
+        body.dark-mode input::placeholder,
+        body.dark-mode textarea::placeholder {
+            color: rgba(24, 51, 42, 0.55);
         }
 
         /* Dark Mode Toggle Button */
