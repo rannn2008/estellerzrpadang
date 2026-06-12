@@ -174,6 +174,7 @@
             backdrop-filter: blur(10px);
         }
 
+        .hero .assistant-card p,
         .assistant-intro {
             margin: -4px 0 0;
             color: var(--muted);
@@ -580,13 +581,15 @@
                 </div>
                 <div class="panel assistant-card">
                     <h2 style="font-size: 28px;">AE Assistant Menu</h2>
-                    <p class="assistant-intro">Dipakai untuk tanya rekomendasi menu, pilihan hemat, menu creamy/segar, dan cara checkout. Jawaban mengikuti menu yang sedang tampil di bawah.</p>
+                    <p class="assistant-intro">Tanya menu terenak, rekomendasi rasa, pilihan hemat, menu segar untuk cuaca panas, atau cara pesan. AE membantu pelanggan yang bingung memilih.</p>
                     <div class="assistant-log" id="assistantLog">
                         <div class="message bot">Halo, aku AE. Aku bisa bantu pilih menu Pondok Es Teller ZR, cek harga, dan arahkan kamu ke checkout.</div>
                     </div>
                     <div class="quick-prompts" aria-label="Contoh pertanyaan AE Assistant">
+                        <button class="quick-prompt" type="button" data-question="Menu yang paling enak dan paling aman direkomendasikan apa?">Paling enak</button>
                         <button class="quick-prompt" type="button" data-question="Rekomendasi menu yang creamy apa?">Creamy</button>
                         <button class="quick-prompt" type="button" data-question="Menu yang paling hemat apa?">Hemat</button>
+                        <button class="quick-prompt" type="button" data-question="Menu yang paling segar untuk cuaca panas apa?">Segar</button>
                         <button class="quick-prompt" type="button" data-question="Menu yang cocok untuk ramai-ramai apa?">Ramai-ramai</button>
                         <button class="quick-prompt" type="button" data-question="Bagaimana cara pesan?">Cara pesan</button>
                     </div>
@@ -594,7 +597,7 @@
                         <input id="assistantInput" type="text" placeholder="Contoh: rekomendasi yang creamy apa?">
                         <button class="btn btn-green" id="askAiButton" type="button">Tanya</button>
                     </div>
-                    <p class="assistant-note" id="assistantMode">AE memakai AI server-side jika aktif. Jika belum, AE tetap menjawab dengan panduan lokal dari menu.</p>
+                    <p class="assistant-note" id="assistantMode">AE siap membantu memilih menu dari daftar yang tersedia.</p>
                 </div>
             </div>
         </section>
@@ -646,27 +649,11 @@
         </section>
 
         <section class="section">
-            <div class="container layout">
-                <div class="panel">
-                    <h2 style="font-size: 30px;">Login Customer</h2>
-                    <p class="muted">Opsional untuk MVP. Customer bisa membuat akun client Supabase agar siap dikembangkan menjadi riwayat order.</p>
-                    <div class="form-grid">
-                        <input id="clientName" placeholder="Nama">
-                        <input id="clientEmail" type="email" placeholder="Email">
-                        <input id="clientPassword" type="password" placeholder="Password minimal 6 karakter">
-                        <div class="nav-actions" style="justify-content: flex-start;">
-                            <button class="btn btn-green" id="clientSignup" type="button">Daftar Client</button>
-                            <button class="btn" id="clientLogin" type="button">Login</button>
-                            <button class="btn btn-danger" id="clientLogout" type="button">Logout</button>
-                        </div>
-                        <p class="muted" id="clientStatus">Belum login.</p>
-                    </div>
-                </div>
-                <div class="auth-mini">
-                    <h2 style="font-size: 30px;">ZR SmartOrder AI</h2>
-                    <p>Pesanan digital membantu pelanggan memilih menu, menyimpan order, lalu mengirim ringkasan ke WhatsApp admin untuk konfirmasi stok dan ongkir.</p>
-                    <a class="btn btn-primary" href="#menu">Lihat Menu</a>
-                </div>
+            <div class="container challenge">
+                <span class="eyebrow" style="background: rgba(255,212,71,0.16); color: #ffdf62;">Bantuan Pelanggan</span>
+                <h2>Masih Bingung Pilih Menu?</h2>
+                <p>Gunakan AE Assistant di bagian atas untuk tanya menu paling enak, pilihan creamy, menu hemat, atau rekomendasi untuk ramai-ramai. Setelah cocok, pilih menu dan lanjut checkout.</p>
+                <a class="btn btn-primary" href="#menu">Pilih Menu Sekarang</a>
             </div>
         </section>
     </main>
@@ -943,6 +930,12 @@
                 return "Cara pesan: pilih menu, klik Tambah ke Keranjang, isi nama dan nomor WhatsApp, lalu klik Simpan Order ke Supabase. Setelah itu kamu bisa kirim ringkasan pesanan ke WhatsApp admin.";
             }
 
+            if (text.includes("enak") || text.includes("best") || text.includes("favorit") || text.includes("rekomendasi")) {
+                const picks = byText(["best seller", "alpukat", "premium", "original", "spesial"]);
+                const selected = picks.length ? picks.slice(0, 3) : available.slice(0, 3);
+                return `Kalau mau pilihan yang aman dan banyak disukai, AE rekomendasikan:\n${selected.map(formatMenuLine).join("\n")}\nUntuk rasa klasik pilih Original, kalau mau lebih puas pilih yang alpukat/premium.`;
+            }
+
             if (text.includes("hemat") || text.includes("murah")) {
                 const picks = [...available].sort((a, b) => Number(a.price || 0) - Number(b.price || 0)).slice(0, 3);
                 return `Untuk pilihan hemat, AE rekomendasikan:\n${picks.map(formatMenuLine).join("\n")}`;
@@ -956,6 +949,11 @@
             if (text.includes("creamy") || text.includes("alpukat") || text.includes("lembut")) {
                 const picks = byText(["alpukat", "creamy", "teller", "teler"]);
                 return `Kalau mau yang creamy, coba:\n${(picks.length ? picks.slice(0, 3) : available.slice(0, 3)).map(formatMenuLine).join("\n")}`;
+            }
+
+            if (text.includes("segar") || text.includes("panas") || text.includes("dingin")) {
+                const picks = byText(["sop buah", "rumput laut", "campur", "buah"]);
+                return `Untuk cuaca panas dan rasa yang segar, AE pilih:\n${(picks.length ? picks.slice(0, 4) : available.slice(0, 4)).map(formatMenuLine).join("\n")}`;
             }
 
             if (text.includes("sop")) {
@@ -988,15 +986,15 @@
                 });
                 const data = await response.json();
                 if (!response.ok || data.error) {
-                    lastBot.textContent = `${localAssistantReply(message)}\n\nCatatan: AI server-side belum aktif, jadi AE memakai panduan lokal dulu.`;
-                    assistantMode.textContent = "Mode saat ini: panduan lokal. Aktifkan AI_API_KEY di Vercel agar jawaban generatif berjalan.";
+                    lastBot.textContent = localAssistantReply(message);
+                    assistantMode.textContent = "AE menjawab dari menu yang tersedia di halaman ini.";
                     return;
                 }
                 lastBot.textContent = data.result || localAssistantReply(message);
-                assistantMode.textContent = "Mode saat ini: AI server-side aktif.";
+                assistantMode.textContent = "AE aktif dan siap membantu rekomendasi menu.";
             } catch (error) {
-                lastBot.textContent = `${localAssistantReply(message)}\n\nCatatan: koneksi AI belum tersambung, jadi AE memakai panduan lokal dulu.`;
-                assistantMode.textContent = "Mode saat ini: panduan lokal karena koneksi AI belum tersambung.";
+                lastBot.textContent = localAssistantReply(message);
+                assistantMode.textContent = "AE menjawab dari menu yang tersedia di halaman ini.";
             }
         }
 
@@ -1070,40 +1068,7 @@
             event.currentTarget.reset();
         });
 
-        async function updateClientStatus() {
-            if (!db) return;
-            const { data } = await db.auth.getSession();
-            document.getElementById("clientStatus").textContent = data.session
-                ? `Login sebagai ${data.session.user.email}`
-                : "Belum login.";
-        }
-
-        document.getElementById("clientSignup").addEventListener("click", async () => {
-            if (!db) return alert("Supabase belum aktif.");
-            const email = document.getElementById("clientEmail").value.trim();
-            const password = document.getElementById("clientPassword").value;
-            const name = document.getElementById("clientName").value.trim();
-            const { error } = await db.auth.signUp({ email, password, options: { data: { name, role: "client" } } });
-            document.getElementById("clientStatus").textContent = error ? `Gagal daftar: ${error.message}` : "Akun client dibuat. Cek email jika konfirmasi aktif.";
-        });
-
-        document.getElementById("clientLogin").addEventListener("click", async () => {
-            if (!db) return alert("Supabase belum aktif.");
-            const email = document.getElementById("clientEmail").value.trim();
-            const password = document.getElementById("clientPassword").value;
-            const { error } = await db.auth.signInWithPassword({ email, password });
-            document.getElementById("clientStatus").textContent = error ? `Login gagal: ${error.message}` : "Login berhasil.";
-            updateClientStatus();
-        });
-
-        document.getElementById("clientLogout").addEventListener("click", async () => {
-            if (!db) return;
-            await db.auth.signOut();
-            updateClientStatus();
-        });
-
         loadProducts();
-        updateClientStatus();
     </script>
 </body>
 </html>
