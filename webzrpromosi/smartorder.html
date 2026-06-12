@@ -272,7 +272,8 @@
             grid-template-rows: 210px 1fr;
         }
 
-        .menu-card img {
+        .menu-card img,
+        .menu-photo {
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -318,6 +319,18 @@
 
         .pill.off { background: #ffe2dd; color: var(--danger); }
         .muted { color: var(--muted); margin: 0; }
+
+        .menu-actions {
+            display: grid;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .quick-wa {
+            background: #fffdf6;
+            color: var(--green-dark);
+            border: 1px solid #cfe0d2;
+        }
 
         .cart-list {
             display: grid;
@@ -571,6 +584,18 @@
             log.scrollTop = log.scrollHeight;
         }
 
+        function inferMenuCategory(menu) {
+            const name = String(menu.name || "").toLowerCase();
+            const category = String(menu.category || "").toLowerCase();
+
+            if (name.includes("rumput laut") || category.includes("rumput laut")) return "es rumput laut";
+            if (name.includes("sop buah") || category.includes("sop buah")) return "sop buah";
+            if (name.includes("es campur") || name.includes("campur") || category.includes("campur")) return "es campur";
+            if (name.includes("teller") || name.includes("teler") || category.includes("teller") || category.includes("teler")) return "es teller";
+            if (name.includes("paket") || category.includes("paket")) return "paket";
+            return category || "lainnya";
+        }
+
         function normalizeMenu(menu, source) {
             const status = String(menu.status || "").toLowerCase();
             const isAvailable = source === "menus"
@@ -582,12 +607,13 @@
                 ui_id: `${source}-${menu.id || menu.name}`.replace(/\s+/g, "-").toLowerCase(),
                 source,
                 name: menu.name || "Menu Pondok Es Teller ZR",
-                category: String(menu.category || "lainnya").toLowerCase(),
+                category: inferMenuCategory(menu),
                 price: Number(menu.price || 0),
                 description: menu.description || "Menu segar Pondok Es Teller ZR.",
                 image_url: menu.image_url || menu.image || "foto2/estelleroriginal.webp",
                 is_available: isAvailable,
                 stock: stock > 0 ? stock : (isAvailable ? 99 : 0),
+                rating: menu.rating || "4.8",
                 badges: Array.isArray(menu.badges) ? menu.badges : []
             };
         }
@@ -606,8 +632,9 @@
 
             const menusResult = await db
                 .from("menus")
-                .select("id,name,price,description,image,rating,badges,status,category,sort_order")
-                .order("sort_order", { ascending: true });
+                .select("*")
+                .order("sort_order", { ascending: true })
+                .order("created_at", { ascending: true });
 
             if (!menusResult.error && menusResult.data && menusResult.data.length) {
                 products = menusResult.data.map((item) => normalizeMenu(item, "menus"));
@@ -649,22 +676,25 @@
 
             productGrid.innerHTML = visible.map((item) => {
                 const available = item.is_available !== false && Number(item.stock || 0) > 0;
-                const badgeList = item.badges && item.badges.length ? item.badges.slice(0, 2) : [];
+                const badges = [`Rating ${item.rating || "4.8"}`, ...(item.badges || []), available ? "Tersedia" : "Habis"];
+                const badgeList = [...new Set(badges.filter(Boolean))];
+                const waMessage = encodeURIComponent(`Halo Pondok Es Teller ZR, saya ingin pesan ${item.name}.`);
                 return `
                     <article class="menu-card">
-                        <img src="${escapeHtml(item.image_url || "foto2/estelleroriginal.webp")}" alt="${escapeHtml(item.name)}">
+                        <img class="menu-photo" src="${escapeHtml(item.image_url || "foto2/estelleroriginal.webp")}" alt="${escapeHtml(item.name)}">
                         <div class="menu-body">
                             <div class="menu-top">
                                 <h3>${escapeHtml(item.name)}</h3>
                                 <span class="price">${rupiah.format(Number(item.price || 0))}</span>
                             </div>
                             <div class="pill-row">
-                                <span class="pill">${escapeHtml(item.category || "menu")}</span>
                                 ${badgeList.map((badge) => `<span class="pill">${escapeHtml(badge)}</span>`).join("")}
-                                <span class="pill ${available ? "" : "off"}">${available ? `Tersedia` : "Habis"}</span>
                             </div>
                             <p class="muted">${escapeHtml(item.description || "Menu segar Pondok Es Teller ZR.")}</p>
-                            <button class="btn btn-green add-cart" data-id="${escapeHtml(item.ui_id)}" ${available ? "" : "disabled"}>${available ? "Tambah ke Keranjang" : "Sedang Habis"}</button>
+                            <div class="menu-actions">
+                                <button class="btn btn-green add-cart" data-id="${escapeHtml(item.ui_id)}" ${available ? "" : "disabled"}>${available ? "Tambah ke Pesanan" : "Sedang Habis"}</button>
+                                <a class="btn quick-wa" href="https://wa.me/6281374110444?text=${waMessage}" target="_blank" rel="noopener" ${available ? "" : "aria-disabled=\"true\""}>Pesan via WA</a>
+                            </div>
                         </div>
                     </article>
                 `;
