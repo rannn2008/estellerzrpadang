@@ -931,9 +931,12 @@
             }
 
             if (text.includes("enak") || text.includes("best") || text.includes("favorit") || text.includes("rekomendasi")) {
-                const picks = byText(["best seller", "alpukat", "premium", "original", "spesial"]);
-                const selected = picks.length ? picks.slice(0, 3) : available.slice(0, 3);
-                return `Kalau mau pilihan yang aman dan banyak disukai, AE rekomendasikan:\n${selected.map(formatMenuLine).join("\n")}\nUntuk rasa klasik pilih Original, kalau mau lebih puas pilih yang alpukat/premium.`;
+                const bestSeller = [...available].sort((a, b) => Number(b.price || 0) - Number(a.price || 0))[0];
+                const alternatives = available
+                    .filter((menu) => menu.ui_id !== bestSeller.ui_id)
+                    .sort((a, b) => Number(b.price || 0) - Number(a.price || 0))
+                    .slice(0, 2);
+                return `Untuk rekomendasi paling enak, AE pilih ${formatMenuLine(bestSeller)}.\nMenu ini AE jadikan best seller utama karena harganya paling premium dan biasanya cocok buat pelanggan yang mau rasa paling puas.\n\nPilihan premium lain:\n${alternatives.map(formatMenuLine).join("\n") || "-"}`;
             }
 
             if (text.includes("hemat") || text.includes("murah")) {
