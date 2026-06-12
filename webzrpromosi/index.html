@@ -1381,27 +1381,71 @@
             right: 18px;
             bottom: 86px;
             z-index: 30;
-            width: 56px;
-            height: 56px;
+            min-width: 246px;
+            min-height: 64px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 999px;
-            background: var(--green-dark);
+            background: linear-gradient(135deg, var(--green-dark), var(--green));
             color: white;
-            display: grid;
-            place-items: center;
-            box-shadow: 0 14px 30px rgba(13, 79, 48, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px 10px 10px;
+            box-shadow: 0 18px 44px rgba(13, 79, 48, 0.34);
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .ai-assist-btn:hover {
-            transform: scale(1.1);
-            background: var(--green);
+            transform: translateY(-3px);
+            box-shadow: 0 24px 54px rgba(13, 79, 48, 0.42);
+        }
+
+        .ai-avatar {
+            position: relative;
+            flex: 0 0 46px;
+            width: 46px;
+            height: 46px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: #fff7c8;
+            color: var(--green-dark);
+        }
+
+        .ai-avatar::after {
+            content: "";
+            position: absolute;
+            right: 1px;
+            bottom: 1px;
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: #25d366;
+            border: 2px solid var(--green-dark);
+        }
+
+        .ai-cta {
+            display: grid;
+            gap: 2px;
+            text-align: left;
+            line-height: 1.2;
+        }
+
+        .ai-cta strong {
+            font-size: 14px;
+            color: #ffffff;
+        }
+
+        .ai-cta span {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.78);
         }
 
         .ai-window {
             position: fixed;
             right: 18px;
-            bottom: 154px;
+            bottom: 166px;
             width: min(340px, 100vw - 36px);
             background: white;
             border-radius: 16px;
@@ -2166,6 +2210,16 @@
             .ai-assist-btn {
                 right: 11px;
                 bottom: 82px;
+                min-width: 64px;
+                width: 64px;
+                min-height: 64px;
+                height: 64px;
+                padding: 9px;
+                justify-content: center;
+            }
+
+            .ai-cta {
+                display: none;
             }
 
             .floating-wa {
@@ -3172,16 +3226,22 @@
         </div>
     </footer>
 
-    <div class="ai-assist-btn" id="aiBtn" aria-label="Tanya AE Assistant">
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 8V4H8" />
-            <rect width="16" height="12" x="4" y="8" rx="2" />
-            <path d="M2 14h2" />
-            <path d="M20 14h2" />
-            <path d="M15 13v2" />
-            <path d="M9 13v2" />
-        </svg>
+    <div class="ai-assist-btn" id="aiBtn" aria-label="Tanya AE Assistant" role="button" tabindex="0">
+        <div class="ai-avatar" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 8V4H8" />
+                <rect width="16" height="12" x="4" y="8" rx="2" />
+                <path d="M2 14h2" />
+                <path d="M20 14h2" />
+                <path d="M15 13v2" />
+                <path d="M9 13v2" />
+            </svg>
+        </div>
+        <div class="ai-cta">
+            <strong>Butuh rekomendasi?</strong>
+            <span>Tanya AE soal menu enak</span>
+        </div>
     </div>
 
         <div class="ai-window" id="aiWindow">
