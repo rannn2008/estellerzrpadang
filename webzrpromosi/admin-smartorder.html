@@ -247,7 +247,7 @@
         <section class="hero">
             <span class="pill">MVP Challenge</span>
             <h1>Dashboard UMKM Pondok Es Teller ZR</h1>
-            <p class="muted">Kelola menu, stok, order masuk, dan konten promosi dengan bantuan AI. Dibuat untuk pemilik UMKM non-teknis.</p>
+            <p class="muted">Kelola menu yang sama dengan landing dan SmartOrder, order masuk, serta konten promosi dengan bantuan AI. Dibuat untuk pemilik UMKM non-teknis.</p>
             <strong id="adminIdentity">Memeriksa admin...</strong>
         </section>
 
@@ -261,30 +261,31 @@
         <section class="grid">
             <div class="stack">
                 <section class="panel">
-                    <h2 id="productTitle">Tambah Produk</h2>
+                    <h2 id="productTitle">Tambah Menu</h2>
                     <form class="form-grid" id="productForm">
                         <input type="hidden" name="id">
-                        <input name="name" placeholder="Nama produk" required>
+                        <input name="name" placeholder="Nama menu" required>
                         <div class="two">
                             <input name="category" placeholder="Kategori: es teller, sop buah" required>
                             <input name="price" type="number" min="0" placeholder="Harga" required>
                         </div>
-                        <textarea name="description" placeholder="Deskripsi produk"></textarea>
-                        <input name="image_url" placeholder="URL/path gambar">
+                        <textarea name="description" placeholder="Deskripsi menu"></textarea>
+                        <input name="image" placeholder="URL/path gambar">
                         <div class="two">
-                            <input name="stock" type="number" min="0" placeholder="Stok" value="0">
-                            <select name="is_available">
-                                <option value="true">Tersedia</option>
-                                <option value="false">Habis</option>
+                            <input name="rating" placeholder="Rating, contoh: 4.8" value="4.8">
+                            <select name="status">
+                                <option value="Tersedia">Tersedia</option>
+                                <option value="Habis">Habis</option>
                             </select>
                         </div>
+                        <input name="badges" placeholder="Badge, pisahkan koma. Contoh: Best seller, Tersedia">
                         <div class="nav-actions" style="justify-content: flex-start;">
-                            <button class="btn btn-green" type="submit">Simpan Produk</button>
+                            <button class="btn btn-green" type="submit">Simpan Menu</button>
                             <button class="btn" id="cancelProductEdit" type="button">Batal Edit</button>
                             <button class="btn" id="generateProductDesc" type="button">Buat Deskripsi AI</button>
                         </div>
                     </form>
-                    <p class="status" id="productStatus">Produk dibaca dari tabel products.</p>
+                    <p class="status" id="productStatus">Menu dibaca dari tabel menus, sama dengan landing dan SmartOrder.</p>
                 </section>
 
                 <section class="panel">
@@ -319,14 +320,14 @@
                 </section>
 
                 <section class="panel">
-                    <h2>Produk</h2>
+                    <h2>Menu Landing & SmartOrder</h2>
                     <div class="table-wrap">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Produk</th>
+                                    <th>Menu</th>
                                     <th>Harga</th>
-                                    <th>Stok</th>
+                                    <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -370,6 +371,28 @@
             return date.toISOString();
         }
 
+        function inferMenuCategory(menu) {
+            const name = String(menu.name || "").toLowerCase();
+            const category = String(menu.category || "").toLowerCase();
+            if (name.includes("rumput laut") || category.includes("rumput laut")) return "es rumput laut";
+            if (name.includes("sop buah") || category.includes("sop buah")) return "sop buah";
+            if (name.includes("es campur") || name.includes("campur") || category.includes("campur")) return "es campur";
+            if (name.includes("teller") || name.includes("teler") || category.includes("teller") || category.includes("teler")) return "es teller";
+            if (name.includes("paket") || category.includes("paket")) return "paket";
+            return category || "lainnya";
+        }
+
+        function normalizeMenu(menu) {
+            return {
+                ...menu,
+                category: inferMenuCategory(menu),
+                image: menu.image_url || menu.image || "foto2/estelleroriginal.webp",
+                rating: menu.rating || "4.8",
+                badges: Array.isArray(menu.badges) ? menu.badges : [],
+                status: menu.status || "Tersedia"
+            };
+        }
+
         async function requireAdmin() {
             if (!db) {
                 document.getElementById("loginStatus").textContent = "Supabase belum aktif di supabase-config.js.";
@@ -404,12 +427,16 @@
         }
 
         async function loadProducts() {
-            const { data, error } = await db.from("products").select("*").order("created_at", { ascending: false });
+            const { data, error } = await db
+                .from("menus")
+                .select("*")
+                .order("sort_order", { ascending: true })
+                .order("created_at", { ascending: true });
             if (error) {
-                document.getElementById("productStatus").textContent = `Gagal membaca products: ${error.message}`;
+                document.getElementById("productStatus").textContent = `Gagal membaca menus: ${error.message}`;
                 products = [];
             } else {
-                products = data || [];
+                products = (data || []).map(normalizeMenu);
             }
             renderProducts();
         }
@@ -469,12 +496,12 @@
                 <tr>
                     <td>
                         <strong>${escapeHtml(product.name)}</strong><br>
-                        <span class="muted">${escapeHtml(product.category || "-")}</span>
+                        <span class="muted">${escapeHtml(product.category || "-")} | Rating ${escapeHtml(product.rating || "4.8")}</span>
                     </td>
                     <td>${rupiah.format(Number(product.price || 0))}</td>
                     <td>
-                        <span class="pill ${product.is_available ? "green" : "red"}">${product.is_available ? "Tersedia" : "Habis"}</span>
-                        <br><span class="muted">Stok ${Number(product.stock || 0)}</span>
+                        <span class="pill ${product.status === "Habis" ? "red" : "green"}">${escapeHtml(product.status || "Tersedia")}</span>
+                        <br><span class="muted">${escapeHtml((product.badges || []).join(", ") || "-")}</span>
                     </td>
                     <td>
                         <button class="btn edit-product" data-id="${escapeHtml(product.id)}" type="button">Edit</button>
@@ -513,19 +540,21 @@
                 category: form.get("category").trim().toLowerCase(),
                 price: Number(form.get("price") || 0),
                 description: form.get("description").trim(),
-                image_url: form.get("image_url").trim() || "foto2/estelleroriginal.webp",
-                stock: Number(form.get("stock") || 0),
-                is_available: form.get("is_available") === "true"
+                image: form.get("image").trim() || "foto2/estelleroriginal.webp",
+                rating: form.get("rating").trim() || "4.8",
+                badges: form.get("badges").split(",").map((badge) => badge.trim()).filter(Boolean),
+                status: form.get("status")
             };
             const request = id
-                ? db.from("products").update(payload).eq("id", id)
-                : db.from("products").insert(payload);
+                ? db.from("menus").update(payload).eq("id", id)
+                : db.from("menus").insert(payload);
             const { error } = await request;
-            document.getElementById("productStatus").textContent = error ? `Gagal simpan: ${error.message}` : "Produk berhasil disimpan.";
+            document.getElementById("productStatus").textContent = error ? `Gagal simpan: ${error.message}` : "Menu berhasil disimpan dan tersambung ke landing/SmartOrder.";
             if (!error) {
                 event.currentTarget.reset();
+                event.currentTarget.elements.rating.value = "4.8";
                 event.currentTarget.elements.id.value = "";
-                document.getElementById("productTitle").textContent = "Tambah Produk";
+                document.getElementById("productTitle").textContent = "Tambah Menu";
                 await loadProducts();
             }
         });
@@ -533,7 +562,8 @@
         document.getElementById("cancelProductEdit").addEventListener("click", () => {
             document.getElementById("productForm").reset();
             document.getElementById("productForm").elements.id.value = "";
-            document.getElementById("productTitle").textContent = "Tambah Produk";
+            document.getElementById("productForm").elements.rating.value = "4.8";
+            document.getElementById("productTitle").textContent = "Tambah Menu";
         });
 
         document.addEventListener("click", async (event) => {
@@ -547,17 +577,18 @@
                 form.elements.category.value = product.category || "";
                 form.elements.price.value = product.price || 0;
                 form.elements.description.value = product.description || "";
-                form.elements.image_url.value = product.image_url || "";
-                form.elements.stock.value = product.stock || 0;
-                form.elements.is_available.value = String(product.is_available !== false);
-                document.getElementById("productTitle").textContent = "Edit Produk";
+                form.elements.image.value = product.image || "";
+                form.elements.rating.value = product.rating || "4.8";
+                form.elements.status.value = product.status || "Tersedia";
+                form.elements.badges.value = (product.badges || []).join(", ");
+                document.getElementById("productTitle").textContent = "Edit Menu";
                 window.scrollTo({ top: 0, behavior: "smooth" });
             }
 
             const remove = event.target.closest(".delete-product");
-            if (remove && confirm("Hapus produk ini?")) {
-                const { error } = await db.from("products").delete().eq("id", remove.dataset.id);
-                document.getElementById("productStatus").textContent = error ? `Gagal hapus: ${error.message}` : "Produk dihapus.";
+            if (remove && confirm("Hapus menu ini dari landing dan SmartOrder?")) {
+                const { error } = await db.from("menus").delete().eq("id", remove.dataset.id);
+                document.getElementById("productStatus").textContent = error ? `Gagal hapus: ${error.message}` : "Menu dihapus dari landing dan SmartOrder.";
                 await loadProducts();
             }
         });
@@ -581,10 +612,65 @@
                     body: JSON.stringify({ ...payload, menus: products, userId: currentUser?.id })
                 });
                 const data = await response.json();
-                output.textContent = data.result || data.error || "AI belum menghasilkan output.";
+                if (!response.ok || data.error) {
+                    output.textContent = `${buildLocalAiFallback(payload)}\n\nCatatan: AI server-side belum aktif/masih error, jadi dashboard memakai insight lokal dulu.`;
+                    return;
+                }
+                output.textContent = data.result || buildLocalAiFallback(payload);
             } catch (error) {
-                output.textContent = "Endpoint AI belum tersambung.";
+                output.textContent = `${buildLocalAiFallback(payload)}\n\nCatatan: Endpoint AI belum tersambung, jadi dashboard memakai insight lokal dulu.`;
             }
+        }
+
+        function buildLocalAiFallback(payload) {
+            if (payload.feature === "caption-generator") {
+                const name = payload.productName || "menu segar Pondok Es Teller ZR";
+                const price = payload.price ? ` mulai ${payload.price}` : "";
+                const target = payload.target || "pelanggan Padang";
+                return [
+                    `1. Segarnya ${name}${price} siap nemenin harimu. Cocok untuk ${target}, pesan sekarang di Pondok Es Teller ZR Padang.`,
+                    `2. Lagi panas? ${name} bisa jadi pilihan manis, dingin, dan menyegarkan untuk keluarga atau teman.`,
+                    `3. Waktunya jajan segar di Pondok Es Teller ZR. Pilih ${name}, checkout, lalu konfirmasi via WhatsApp.`,
+                    "",
+                    "Hashtag: #EsTellerZR #EsTellerPadang #MinumanSegarPadang #SopBuahPadang #KulinerPadang",
+                    "",
+                    `Story: ${name} lagi siap dipesan hari ini. Yuk checkout sekarang.`
+                ].join("\n");
+            }
+
+            if (payload.feature === "product-description") {
+                const name = payload.productName || "Menu ini";
+                const ingredients = payload.ingredients || "rasa segar khas Pondok Es Teller ZR";
+                return `${name} dibuat dengan ${ingredients}, cocok untuk cuaca panas Kota Padang. Rasanya manis, dingin, dan mudah disukai pelanggan keluarga maupun anak muda.`;
+            }
+
+            if (payload.feature === "sales-insight") {
+                const safeOrders = Array.isArray(orders) ? orders : [];
+                const today = new Date(todayStartIso());
+                const todayOrders = safeOrders.filter((order) => new Date(order.created_at) >= today);
+                const revenue = todayOrders
+                    .filter((order) => order.status !== "cancelled")
+                    .reduce((sum, order) => sum + Number(order.total_price || 0), 0);
+                const itemMap = new Map();
+                todayOrders.forEach((order) => (order.order_items || []).forEach((item) => {
+                    itemMap.set(item.product_name, (itemMap.get(item.product_name) || 0) + Number(item.qty || 0));
+                }));
+                const bestItems = [...itemMap.entries()].sort((a, b) => b[1] - a[1]);
+                const best = bestItems[0];
+                const newOrders = safeOrders.filter((order) => order.status === "new").length;
+
+                return [
+                    `Ringkasan hari ini: ${todayOrders.length} order dengan estimasi pendapatan ${rupiah.format(revenue)}.`,
+                    `Menu paling laris: ${best ? `${best[0]} (${best[1]} item)` : "belum terlihat dari data hari ini"}.`,
+                    `Order baru yang perlu dicek: ${newOrders}.`,
+                    "",
+                    `Saran stok: ${best ? `siapkan bahan lebih untuk ${best[0]} karena paling banyak dipesan.` : "pastikan bahan utama es teller, buah, rumput laut, dan susu tetap aman."}`,
+                    "Saran promo besok: buat posting singkat menu best seller + ajakan pesan via WhatsApp untuk pickup/delivery sekitar Padang.",
+                    "Narasi pemilik: penjualan bisa dipantau dari dashboard, jadi stok dan promosi besok lebih mudah diputuskan."
+                ].join("\n");
+            }
+
+            return "AI lokal belum punya format untuk fitur ini.";
         }
 
         document.getElementById("captionButton").addEventListener("click", () => {
@@ -605,7 +691,7 @@
                 productName: form.elements.name.value,
                 ingredients: form.elements.description.value || form.elements.category.value
             }, outputId);
-            form.elements.description.value = document.getElementById(outputId).textContent;
+            form.elements.description.value = document.getElementById(outputId).textContent.split("\n\nCatatan:")[0];
         });
 
         document.getElementById("salesInsightButton").addEventListener("click", () => {
