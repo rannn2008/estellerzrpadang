@@ -669,12 +669,23 @@
                 });
                 const data = await response.json();
                 if (!response.ok || data.error) {
-                    output.textContent = `${buildLocalAiFallback(payload)}\n\nCatatan: AI server-side belum aktif/masih error, jadi dashboard memakai insight lokal dulu.`;
+                    output.textContent = [
+                        "AI generatif belum berhasil memproses data.",
+                        data.detail ? `Detail: ${data.detail}` : "Cek OPENAI_API_KEY, billing/credit OpenAI, dan AI_MODEL di Vercel.",
+                        "",
+                        "Analisis lokal sementara:",
+                        buildLocalAiFallback(payload)
+                    ].join("\n");
                     return;
                 }
                 output.textContent = data.result || buildLocalAiFallback(payload);
             } catch (error) {
-                output.textContent = `${buildLocalAiFallback(payload)}\n\nCatatan: Endpoint AI belum tersambung, jadi dashboard memakai insight lokal dulu.`;
+                output.textContent = [
+                    "Endpoint AI belum tersambung.",
+                    "",
+                    "Analisis lokal sementara:",
+                    buildLocalAiFallback(payload)
+                ].join("\n");
             }
         }
 
@@ -751,7 +762,7 @@
         });
 
         document.getElementById("salesInsightButton").addEventListener("click", () => {
-            callAi({ feature: "sales-insight", orders }, "salesOutput");
+            callAi({ feature: "sales-insight", orders, products }, "salesOutput");
         });
 
         requireAdmin();

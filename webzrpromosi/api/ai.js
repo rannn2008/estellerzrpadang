@@ -1,4 +1,5 @@
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
+const OPENAI_CHAT_API_URL = "https://api.openai.com/v1/chat/completions";
 const DEFAULT_MODEL = "gpt-4.1-mini";
 
 function send(res, status, body) {
@@ -33,6 +34,14 @@ function extractOutputText(data) {
     }
   }
   return chunks.join("\n").trim();
+}
+
+function extractChatOutputText(data) {
+  return String(data.choices?.[0]?.message?.content || "").trim();
+}
+
+function getErrorMessage(data, fallback = "AI provider error") {
+  return cleanText(data?.error?.message || data?.message || fallback, 500);
 }
 
 function formatMoney(value) {
@@ -114,7 +123,7 @@ Output maksimal 3 kalimat.`;
 
     return `${base}
 
-Tugas: bantu pemilik UMKM membaca laporan penjualan.
+Tugas: bantu pemilik UMKM membaca laporan penjualan dengan menganalisis semua data order yang diberikan, bukan memakai template jawaban.
 Data order:
 ${orderContext}
 
@@ -127,6 +136,81 @@ Output wajib:
   }
 
   return `${base}\n\nTugas: ${cleanText(body.prompt || body.message, 1000)}`;
+}
+
+function uniqueModels(primary) {
+  return [...new Set([primary, DEFAULT_MODEL, "gpt-4o-mini", "gpt-4o"].filter(Boolean))];
+}
+
+async function callResponsesApi(apiKey, model, feature, prompt) {
+  const response = await fetch(OPENAI_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      input: [
+        {
+          role: "developer",
+          content: "Kamu membantu UMKM kuliner Indonesia. Analisis data yang diberikan, jaga jawaban faktual, jangan mengarang data, dan selalu pakai database/context yang diberikan."
+        },
+        { role: "user", content: prompt }
+      ],
+      max_output_tokens: feature === "sales-insight" ? 760 : 480
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    return { ok: false, status: response.status, message: getErrorMessage(data), data };
+  }
+  return { ok: true, result: extractOutputText(data), model: data.model || model };
+}
+
+async function callChatApi(apiKey, model, feature, prompt) {
+  const response = await fetch(OPENAI_CHAT_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        {
+          role: "system",
+          content: "Kamu membantu UMKM kuliner Indonesia. Analisis data yang diberikan, jaga jawaban faktual, jangan mengarang data, dan selalu pakai database/context yang diberikan."
+        },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: feature === "sales-insight" ? 760 : 480,
+      temperature: 0.7
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    return { ok: false, status: response.status, message: getErrorMessage(data), data };
+  }
+  return { ok: true, result: extractChatOutputText(data), model: data.model || model };
+}
+
+async function runAi(apiKey, feature, prompt) {
+  const requestedModel = process.env.AI_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL;
+  const models = uniqueModels(requestedModel);
+  const errors = [];
+
+  for (const model of models) {
+    const responsesResult = await callResponsesApi(apiKey, model, feature, prompt);
+    if (responsesResult.ok && responsesResult.result) return responsesResult;
+    errors.push(`responses:${model}:${responsesResult.status || "no-status"}:${responsesResult.message || "empty output"}`);
+
+    const chatResult = await callChatApi(apiKey, model, feature, prompt);
+    if (chatResult.ok && chatResult.result) return chatResult;
+    errors.push(`chat:${model}:${chatResult.status || "no-status"}:${chatResult.message || "empty output"}`);
+  }
+
+  return { ok: false, message: errors.slice(-2).join(" | "), errors };
 }
 
 async function logToSupabase(feature, prompt, result, userId) {
@@ -182,37 +266,21 @@ module.exports = async function handler(req, res) {
   const prompt = buildPrompt(feature, body);
 
   try {
-    const response = await fetch(OPENAI_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: process.env.AI_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL,
-        input: [
-          {
-            role: "developer",
-            content: "Kamu membantu UMKM kuliner Indonesia. Jaga jawaban faktual, tidak mengarang data, dan selalu pakai data database yang diberikan."
-          },
-          { role: "user", content: prompt }
-        ],
-        max_output_tokens: feature === "sales-insight" ? 620 : 420
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      console.error("AI provider error:", data);
-      send(res, 502, { error: "AI sedang sibuk. Coba lagi sebentar." });
+    const aiResult = await runAi(apiKey, feature, prompt);
+    if (!aiResult.ok) {
+      console.error("AI provider error:", aiResult.errors || aiResult.message);
+      send(res, 502, {
+        error: "AI server belum berhasil memproses data.",
+        detail: aiResult.message || "Cek OPENAI_API_KEY, billing/credit OpenAI, dan akses model di Vercel."
+      });
       return;
     }
 
-    const result = extractOutputText(data) || "AI belum menghasilkan jawaban. Coba ulangi dengan input lebih jelas.";
+    const result = aiResult.result || "AI belum menghasilkan jawaban. Coba ulangi dengan input lebih jelas.";
     await logToSupabase(feature, prompt, result, cleanText(body.userId, 80));
-    send(res, 200, { result, feature, model: data.model || process.env.AI_MODEL || DEFAULT_MODEL });
+    send(res, 200, { result, feature, model: aiResult.model });
   } catch (error) {
     console.error("AI endpoint error:", error);
-    send(res, 500, { error: "Server AI belum bisa memproses permintaan." });
+    send(res, 500, { error: "Server AI belum bisa memproses permintaan.", detail: cleanText(error.message, 300) });
   }
 };
