@@ -545,11 +545,27 @@
                 badges: form.get("badges").split(",").map((badge) => badge.trim()).filter(Boolean),
                 status: form.get("status")
             };
-            const request = id
-                ? db.from("menus").update(payload).eq("id", id)
-                : db.from("menus").insert(payload);
-            const { error } = await request;
-            document.getElementById("productStatus").textContent = error ? `Gagal simpan: ${error.message}` : "Menu berhasil disimpan dan tersambung ke landing/SmartOrder.";
+            async function saveMenu(menuPayload) {
+                return id
+                    ? db.from("menus").update(menuPayload).eq("id", id)
+                    : db.from("menus").insert(menuPayload);
+            }
+
+            let { error } = await saveMenu(payload);
+            if (error && String(error.message || "").includes("'category'")) {
+                const payloadWithoutCategory = { ...payload };
+                delete payloadWithoutCategory.category;
+                ({ error } = await saveMenu(payloadWithoutCategory));
+                if (!error) {
+                    document.getElementById("productStatus").textContent = "Menu berhasil disimpan. Catatan: kolom category belum ada di Supabase, jadi kategori tetap dibaca otomatis dari nama menu.";
+                }
+            } else {
+                document.getElementById("productStatus").textContent = error ? `Gagal simpan: ${error.message}` : "Menu berhasil disimpan dan tersambung ke landing/SmartOrder.";
+            }
+
+            if (error) {
+                document.getElementById("productStatus").textContent = `Gagal simpan: ${error.message}`;
+            }
             if (!error) {
                 event.currentTarget.reset();
                 event.currentTarget.elements.rating.value = "4.8";
