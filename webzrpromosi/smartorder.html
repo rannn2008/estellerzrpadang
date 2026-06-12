@@ -146,6 +146,12 @@
             align-content: start;
         }
 
+        .assistant-intro {
+            margin: -4px 0 0;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
         .assistant-log {
             height: 280px;
             overflow: auto;
@@ -167,6 +173,29 @@
 
         .message.bot { background: #edf7ef; color: #153726; }
         .message.user { background: var(--green); color: #ffffff; justify-self: end; max-width: 88%; }
+
+        .quick-prompts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .quick-prompt {
+            border: 1px solid rgba(18, 134, 64, 0.24);
+            border-radius: 999px;
+            background: #f5fff3;
+            color: var(--green-dark);
+            padding: 8px 10px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .assistant-note {
+            margin: 0;
+            color: #6a7a70;
+            font-size: 13px;
+            line-height: 1.5;
+        }
 
         .input-row {
             display: grid;
@@ -408,14 +437,22 @@
                     <p>ZR SmartOrder AI membantu pelanggan Pondok Es Teller ZR Padang melihat menu dari database, mendapat rekomendasi, lalu membuat pesanan yang masuk ke Supabase.</p>
                 </div>
                 <div class="panel assistant-card">
-                    <h2 style="font-size: 28px;">AE Assistant</h2>
+                    <h2 style="font-size: 28px;">AE Assistant Menu</h2>
+                    <p class="assistant-intro">Dipakai untuk tanya rekomendasi menu, pilihan hemat, menu creamy/segar, dan cara checkout. Jawaban mengikuti menu yang sedang tampil di bawah.</p>
                     <div class="assistant-log" id="assistantLog">
-                        <div class="message bot">Halo, aku AE. Tanya menu segar, rekomendasi, atau cara pesan di sini ya.</div>
+                        <div class="message bot">Halo, aku AE. Aku bisa bantu pilih menu Pondok Es Teller ZR, cek harga, dan arahkan kamu ke checkout.</div>
+                    </div>
+                    <div class="quick-prompts" aria-label="Contoh pertanyaan AE Assistant">
+                        <button class="quick-prompt" type="button" data-question="Rekomendasi menu yang creamy apa?">Creamy</button>
+                        <button class="quick-prompt" type="button" data-question="Menu yang paling hemat apa?">Hemat</button>
+                        <button class="quick-prompt" type="button" data-question="Menu yang cocok untuk ramai-ramai apa?">Ramai-ramai</button>
+                        <button class="quick-prompt" type="button" data-question="Bagaimana cara pesan?">Cara pesan</button>
                     </div>
                     <div class="input-row">
                         <input id="assistantInput" type="text" placeholder="Contoh: rekomendasi yang creamy apa?">
                         <button class="btn btn-green" id="askAiButton" type="button">Tanya</button>
                     </div>
+                    <p class="assistant-note" id="assistantMode">AE memakai AI server-side jika aktif. Jika belum, AE tetap menjawab dengan panduan lokal dari menu.</p>
                 </div>
             </div>
         </section>
@@ -433,8 +470,8 @@
             <div class="container">
                 <div class="section-head">
                     <div>
-                        <h2>Menu dari Supabase</h2>
-                        <p class="muted">Filter kategori, cek stok, lalu tambahkan ke keranjang.</p>
+                        <h2>Menu Pondok Es Teller ZR</h2>
+                        <p class="muted" id="menuSourceNote">Menu disinkronkan dengan data yang dipakai di landing page.</p>
                     </div>
                     <div class="filters" id="filters"></div>
                 </div>
@@ -497,10 +534,14 @@
         const hasSupabase = Boolean(config.url && config.anonKey && window.supabase);
         const db = hasSupabase ? window.supabase.createClient(config.url, config.anonKey) : null;
         const fallbackProducts = [
-            { id: "local-1", name: "Es Teller Original", category: "es teller", price: 10000, description: "Racikan klasik berisi buah segar.", image_url: "foto2/estelleroriginal.webp", is_available: true, stock: 30 },
-            { id: "local-2", name: "Es Campur Premium", category: "es campur", price: 15000, description: "Es campur segar dengan isian favorit.", image_url: "foto2/display-esteller.jpg.webp", is_available: true, stock: 20 },
-            { id: "local-3", name: "Es Rumput Laut Premium", category: "es rumput laut", price: 13000, description: "Paduan rumput laut dan kuah segar.", image_url: "foto2/alpukat-segar.jpg.webp", is_available: true, stock: 18 },
-            { id: "local-4", name: "Sop Buah Original", category: "sop buah", price: 15000, description: "Potongan buah segar dengan kuah susu.", image_url: "foto2/buah-segar.jpg.webp", is_available: true, stock: 16 }
+            { id: "local-1", ui_id: "local-1", source: "fallback", name: "Es Teller Original", category: "es teller", price: 12000, description: "Racikan klasik berisi buah segar, kuah manis, dan sensasi dingin yang pas.", image_url: "foto2/estelleroriginal.webp", is_available: true, stock: 30, badges: ["Best seller", "Tersedia"] },
+            { id: "local-2", ui_id: "local-2", source: "fallback", name: "Es Teller Alpukat Spesial", category: "es teller", price: 16000, description: "Menu unggulan dengan alpukat lebih banyak, creamy, dan bikin puas.", image_url: "foto2/alpukat-segar.jpg.webp", is_available: true, stock: 25, badges: ["Alpukat favorit", "Tersedia"] },
+            { id: "local-3", ui_id: "local-3", source: "fallback", name: "Es Teller Durian", category: "es teller", price: 18000, description: "Tambahan aroma durian untuk rasa yang lebih tebal dan nikmat.", image_url: "foto2/estelleroriginal.webp", is_available: true, stock: 20, badges: ["Aroma durian", "Tersedia"] },
+            { id: "local-4", ui_id: "local-4", source: "fallback", name: "Es Teller Jumbo", category: "es teller", price: 20000, description: "Porsi lebih besar untuk yang lagi haus berat dan butuh segar maksimal.", image_url: "foto2/estelleroriginal.webp", is_available: true, stock: 20, badges: ["Porsi besar", "Tersedia"] },
+            { id: "local-5", ui_id: "local-5", source: "fallback", name: "Es Teller Campur", category: "es campur", price: 15000, description: "Campuran buah pilihan dengan rasa manis segar yang cocok untuk semua orang.", image_url: "foto2/buah-segar.jpg.webp", is_available: true, stock: 25, badges: ["Buah campur", "Tersedia"] },
+            { id: "local-6", ui_id: "local-6", source: "fallback", name: "Sop Buah Segar", category: "sop buah", price: 15000, description: "Potongan buah-buahan segar dengan sirup dan susu yang nikmat.", image_url: "foto2/galeri/buah-segar.webp", is_available: true, stock: 20, badges: ["Full Vitamin", "Tersedia"] },
+            { id: "local-7", ui_id: "local-7", source: "fallback", name: "Es Rumput Laut Spesial", category: "es rumput laut", price: 14000, description: "Sensasi kenyal rumput laut pilihan dipadu dengan kuah manis segar.", image_url: "foto2/galeri/display-esteller.webp", is_available: true, stock: 20, badges: ["Serat tinggi", "Tersedia"] },
+            { id: "local-8", ui_id: "local-8", source: "fallback", name: "Paket Keluarga", category: "paket", price: 55000, description: "Paket ramai-ramai untuk keluarga, teman kantor, atau kumpul santai.", image_url: "foto2/galeri/menu-juga.webp", is_available: true, stock: 10, badges: ["Untuk ramai", "Tersedia"] }
         ];
         let products = [];
         let activeCategory = "semua";
@@ -512,6 +553,8 @@
         const cartList = document.getElementById("cartList");
         const cartTotal = document.getElementById("cartTotal");
         const orderResult = document.getElementById("orderResult");
+        const assistantMode = document.getElementById("assistantMode");
+        const menuSourceNote = document.getElementById("menuSourceNote");
 
         function escapeHtml(value) {
             return String(value || "").replace(/[&<>"']/g, (char) => ({
@@ -528,25 +571,67 @@
             log.scrollTop = log.scrollHeight;
         }
 
+        function normalizeMenu(menu, source) {
+            const status = String(menu.status || "").toLowerCase();
+            const isAvailable = source === "menus"
+                ? status !== "habis"
+                : menu.is_available !== false;
+            const stock = Number(menu.stock ?? menu.sort_order ?? 0);
+            return {
+                id: menu.id || `${source}-${menu.name}`,
+                ui_id: `${source}-${menu.id || menu.name}`.replace(/\s+/g, "-").toLowerCase(),
+                source,
+                name: menu.name || "Menu Pondok Es Teller ZR",
+                category: String(menu.category || "lainnya").toLowerCase(),
+                price: Number(menu.price || 0),
+                description: menu.description || "Menu segar Pondok Es Teller ZR.",
+                image_url: menu.image_url || menu.image || "foto2/estelleroriginal.webp",
+                is_available: isAvailable,
+                stock: stock > 0 ? stock : (isAvailable ? 99 : 0),
+                badges: Array.isArray(menu.badges) ? menu.badges : []
+            };
+        }
+
+        function setMenuSource(message) {
+            if (menuSourceNote) menuSourceNote.textContent = message;
+        }
+
         async function loadProducts() {
             if (!db) {
                 products = fallbackProducts;
+                setMenuSource("Supabase belum aktif, jadi menu contoh mengikuti data landing.");
                 render();
                 return;
             }
 
-            const { data, error } = await db
+            const menusResult = await db
+                .from("menus")
+                .select("id,name,price,description,image,rating,badges,status,category,sort_order")
+                .order("sort_order", { ascending: true });
+
+            if (!menusResult.error && menusResult.data && menusResult.data.length) {
+                products = menusResult.data.map((item) => normalizeMenu(item, "menus"));
+                setMenuSource("Menu ini memakai tabel menus yang sama dengan landing page.");
+                render();
+                return;
+            }
+
+            const productsResult = await db
                 .from("products")
                 .select("id,name,category,price,description,image_url,is_available,stock")
                 .order("created_at", { ascending: false });
 
-            if (error) {
-                console.warn(error);
-                products = fallbackProducts;
-                addMessage("bot", "Menu Supabase belum siap, jadi AE menampilkan data contoh lokal dulu.");
-            } else {
-                products = data && data.length ? data : fallbackProducts;
+            if (!productsResult.error && productsResult.data && productsResult.data.length) {
+                products = productsResult.data.map((item) => normalizeMenu(item, "products"));
+                setMenuSource("Menu ini memakai tabel products SmartOrder.");
+                render();
+                return;
             }
+
+            console.warn(menusResult.error || productsResult.error);
+            products = fallbackProducts;
+            setMenuSource("Data Supabase belum terbaca, jadi menu contoh mengikuti landing.");
+            addMessage("bot", "Menu utama belum terbaca dari Supabase. Untuk sementara AE pakai data contoh yang sama seperti landing.");
             render();
         }
 
@@ -564,6 +649,7 @@
 
             productGrid.innerHTML = visible.map((item) => {
                 const available = item.is_available !== false && Number(item.stock || 0) > 0;
+                const badgeList = item.badges && item.badges.length ? item.badges.slice(0, 2) : [];
                 return `
                     <article class="menu-card">
                         <img src="${escapeHtml(item.image_url || "foto2/estelleroriginal.webp")}" alt="${escapeHtml(item.name)}">
@@ -574,10 +660,11 @@
                             </div>
                             <div class="pill-row">
                                 <span class="pill">${escapeHtml(item.category || "menu")}</span>
-                                <span class="pill ${available ? "" : "off"}">${available ? `Stok ${Number(item.stock || 0)}` : "Habis"}</span>
+                                ${badgeList.map((badge) => `<span class="pill">${escapeHtml(badge)}</span>`).join("")}
+                                <span class="pill ${available ? "" : "off"}">${available ? `Tersedia` : "Habis"}</span>
                             </div>
                             <p class="muted">${escapeHtml(item.description || "Menu segar Pondok Es Teller ZR.")}</p>
-                            <button class="btn btn-green add-cart" data-id="${escapeHtml(item.id)}" ${available ? "" : "disabled"}>${available ? "Tambah ke Keranjang" : "Sedang Habis"}</button>
+                            <button class="btn btn-green add-cart" data-id="${escapeHtml(item.ui_id)}" ${available ? "" : "disabled"}>${available ? "Tambah ke Keranjang" : "Sedang Habis"}</button>
                         </div>
                     </article>
                 `;
@@ -625,11 +712,18 @@
 
             const add = event.target.closest(".add-cart");
             if (add) {
-                const product = products.find((item) => String(item.id) === String(add.dataset.id));
+                const product = products.find((item) => String(item.ui_id) === String(add.dataset.id));
                 if (!product) return;
-                const existing = cart.find((item) => String(item.id) === String(product.id));
+                const existing = cart.find((item) => String(item.ui_id) === String(product.ui_id));
                 if (existing) existing.qty += 1;
-                else cart.push({ id: product.id, name: product.name, price: Number(product.price || 0), qty: 1 });
+                else cart.push({
+                    id: product.id,
+                    ui_id: product.ui_id,
+                    source: product.source,
+                    name: product.name,
+                    price: Number(product.price || 0),
+                    qty: 1
+                });
                 renderCart();
                 return;
             }
@@ -650,13 +744,66 @@
             }
         });
 
-        document.getElementById("askAiButton").addEventListener("click", async () => {
+        function getAvailableMenus() {
+            return products.filter((item) => item.is_available !== false && Number(item.stock || 0) > 0);
+        }
+
+        function formatMenuLine(menu) {
+            return `${menu.name} - ${rupiah.format(Number(menu.price || 0))}`;
+        }
+
+        function localAssistantReply(message) {
+            const text = message.toLowerCase();
+            const available = getAvailableMenus();
+            if (!available.length) {
+                return "AE belum menemukan menu yang tersedia. Coba refresh halaman atau pesan langsung via WhatsApp admin.";
+            }
+
+            const byText = (words) => available.filter((menu) => {
+                const haystack = `${menu.name} ${menu.category} ${menu.description} ${(menu.badges || []).join(" ")}`.toLowerCase();
+                return words.some((word) => haystack.includes(word));
+            });
+
+            if (text.includes("cara") || text.includes("pesan") || text.includes("checkout")) {
+                return "Cara pesan: pilih menu, klik Tambah ke Keranjang, isi nama dan nomor WhatsApp, lalu klik Simpan Order ke Supabase. Setelah itu kamu bisa kirim ringkasan pesanan ke WhatsApp admin.";
+            }
+
+            if (text.includes("hemat") || text.includes("murah")) {
+                const picks = [...available].sort((a, b) => Number(a.price || 0) - Number(b.price || 0)).slice(0, 3);
+                return `Untuk pilihan hemat, AE rekomendasikan:\n${picks.map(formatMenuLine).join("\n")}`;
+            }
+
+            if (text.includes("ramai") || text.includes("keluarga") || text.includes("banyak")) {
+                const picks = byText(["paket", "jumbo", "ramai", "keluarga"]);
+                return `Untuk ramai-ramai, AE pilih:\n${(picks.length ? picks : available.slice(-3)).map(formatMenuLine).join("\n")}\nKalau jumlahnya banyak, sebaiknya konfirmasi stok dulu via WhatsApp.`;
+            }
+
+            if (text.includes("creamy") || text.includes("alpukat") || text.includes("lembut")) {
+                const picks = byText(["alpukat", "creamy", "teller", "teler"]);
+                return `Kalau mau yang creamy, coba:\n${(picks.length ? picks.slice(0, 3) : available.slice(0, 3)).map(formatMenuLine).join("\n")}`;
+            }
+
+            if (text.includes("sop")) {
+                const picks = byText(["sop buah"]);
+                return picks.length ? `Untuk sop buah, tersedia:\n${picks.map(formatMenuLine).join("\n")}` : "AE belum melihat sop buah tersedia di menu yang tampil.";
+            }
+
+            if (text.includes("rumput")) {
+                const picks = byText(["rumput laut"]);
+                return picks.length ? `Untuk es rumput laut, tersedia:\n${picks.map(formatMenuLine).join("\n")}` : "AE belum melihat es rumput laut tersedia di menu yang tampil.";
+            }
+
+            return `AE bisa bantu pilih dari menu yang tampil. Beberapa rekomendasi aman:\n${available.slice(0, 4).map(formatMenuLine).join("\n")}\nKetik misalnya: menu hemat, yang creamy, sop buah, atau cara pesan.`;
+        }
+
+        async function askAssistant(question) {
             const input = document.getElementById("assistantInput");
-            const message = input.value.trim();
+            const message = (question || input.value).trim();
             if (!message) return;
             input.value = "";
             addMessage("user", message);
-            addMessage("bot", "AE sedang membaca menu...");
+            addMessage("bot", "AE sedang membaca menu yang tampil...");
+            const lastBot = document.querySelector("#assistantLog .message.bot:last-child");
 
             try {
                 const response = await fetch("/api/ai", {
@@ -665,10 +812,25 @@
                     body: JSON.stringify({ feature: "customer-assistant", message, menus: products })
                 });
                 const data = await response.json();
-                document.querySelector("#assistantLog .message.bot:last-child").textContent = data.result || data.error || "AE belum bisa menjawab.";
+                if (!response.ok || data.error) {
+                    lastBot.textContent = `${localAssistantReply(message)}\n\nCatatan: AI server-side belum aktif, jadi AE memakai panduan lokal dulu.`;
+                    assistantMode.textContent = "Mode saat ini: panduan lokal. Aktifkan AI_API_KEY di Vercel agar jawaban generatif berjalan.";
+                    return;
+                }
+                lastBot.textContent = data.result || localAssistantReply(message);
+                assistantMode.textContent = "Mode saat ini: AI server-side aktif.";
             } catch (error) {
-                document.querySelector("#assistantLog .message.bot:last-child").textContent = "AE belum tersambung. Coba lagi sebentar.";
+                lastBot.textContent = `${localAssistantReply(message)}\n\nCatatan: koneksi AI belum tersambung, jadi AE memakai panduan lokal dulu.`;
+                assistantMode.textContent = "Mode saat ini: panduan lokal karena koneksi AI belum tersambung.";
             }
+        }
+
+        document.getElementById("askAiButton").addEventListener("click", () => {
+            askAssistant();
+        });
+
+        document.querySelectorAll(".quick-prompt").forEach((button) => {
+            button.addEventListener("click", () => askAssistant(button.dataset.question));
         });
 
         document.getElementById("orderForm").addEventListener("submit", async (event) => {
@@ -702,7 +864,7 @@
 
             const items = cart.map((item) => ({
                 order_id: order.id,
-                product_id: String(item.id).startsWith("local-") ? null : item.id,
+                product_id: item.source === "products" ? item.id : null,
                 product_name: item.name,
                 qty: item.qty,
                 price: item.price,
