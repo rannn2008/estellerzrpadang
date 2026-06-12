@@ -27,7 +27,7 @@
             margin: 0;
             font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--ink);
-            background: linear-gradient(180deg, #fff8d9 0%, #f8fff5 44%, #ffffff 100%);
+            background: #fff7dc;
             min-height: 100vh;
         }
 
@@ -53,6 +53,10 @@
             align-items: center;
             justify-content: space-between;
             gap: 18px;
+        }
+
+        .brand span {
+            color: #ffffff;
         }
 
         .brand {
@@ -86,6 +90,10 @@
             background: #edf7ef;
             color: var(--green-dark);
             min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         .btn-primary { background: var(--yellow); color: #06351d; }
@@ -94,10 +102,27 @@
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
         .hero {
-            padding: 62px 0 34px;
+            position: relative;
+            overflow: hidden;
+            padding: 64px 0 40px;
+            background:
+                linear-gradient(90deg, rgba(7, 85, 47, 0.88), rgba(18, 134, 64, 0.58)),
+                url("foto2/herobackground.webp") center/cover;
+            color: #ffffff;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(255, 247, 220, 0), #fff7dc);
+            pointer-events: none;
         }
 
         .hero-grid {
+            position: relative;
+            z-index: 1;
             display: grid;
             grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
             gap: 26px;
@@ -113,7 +138,7 @@
 
         .hero p {
             margin: 0;
-            color: #315241;
+            color: rgba(255, 255, 255, 0.92);
             font-size: 18px;
             line-height: 1.7;
             max-width: 760px;
@@ -122,9 +147,9 @@
         .eyebrow {
             display: inline-flex;
             width: fit-content;
-            background: rgba(18, 134, 64, 0.12);
-            color: var(--green-dark);
-            border: 1px solid rgba(18, 134, 64, 0.18);
+            background: rgba(255, 212, 71, 0.18);
+            color: #fff6b8;
+            border: 1px solid rgba(255, 212, 71, 0.25);
             border-radius: 999px;
             padding: 8px 12px;
             font-weight: 900;
@@ -144,6 +169,9 @@
             display: grid;
             gap: 14px;
             align-content: start;
+            background: rgba(255, 255, 255, 0.94);
+            color: var(--ink);
+            backdrop-filter: blur(10px);
         }
 
         .assistant-intro {
@@ -217,7 +245,7 @@
         textarea { min-height: 86px; resize: vertical; }
 
         .section {
-            padding: 34px 0;
+            padding: 44px 0;
         }
 
         .section-head {
@@ -255,7 +283,7 @@
 
         .layout {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
             gap: 24px;
             align-items: start;
         }
@@ -269,7 +297,7 @@
         .menu-card {
             overflow: hidden;
             display: grid;
-            grid-template-rows: 210px 1fr;
+            grid-template-rows: 230px 1fr;
         }
 
         .menu-card img,
@@ -395,6 +423,11 @@
             padding: 14px;
         }
 
+        .result-box.error {
+            border-color: rgba(180, 35, 24, 0.28);
+            background: #fff1ee;
+        }
+
         .auth-mini {
             display: grid;
             gap: 10px;
@@ -420,9 +453,106 @@
                 grid-template-columns: 1fr;
             }
 
-            .nav { align-items: flex-start; padding: 12px 0; }
+            .nav {
+                align-items: flex-start;
+                padding: 12px 0;
+            }
+
+            .nav-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .nav-actions .btn {
+                flex: 1 1 0;
+                padding-inline: 10px;
+            }
+
             .hero { padding-top: 38px; }
             .input-row { grid-template-columns: 1fr; }
+
+            .section-head {
+                display: grid;
+                align-items: start;
+            }
+
+            .filters {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                padding-bottom: 4px;
+            }
+
+            .filter {
+                flex: 0 0 auto;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .container {
+                width: min(100% - 22px, 1120px);
+            }
+
+            .topbar {
+                position: sticky;
+            }
+
+            .brand {
+                font-size: 20px;
+                gap: 9px;
+            }
+
+            .brand img {
+                width: 36px;
+                height: 36px;
+            }
+
+            .hero {
+                padding: 34px 0 26px;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+
+            .assistant-log {
+                height: 220px;
+            }
+
+            .section {
+                padding: 28px 0;
+            }
+
+            h2 {
+                font-size: 30px;
+            }
+
+            .menu-card {
+                grid-template-rows: 220px 1fr;
+            }
+
+            .menu-body {
+                padding: 16px;
+            }
+
+            .menu-top {
+                display: grid;
+            }
+
+            .price {
+                width: fit-content;
+            }
+
+            .cart-line {
+                display: grid;
+            }
         }
     </style>
 </head>
@@ -732,6 +862,22 @@
             renderCart();
         }
 
+        function buildWhatsAppUrl(orderPayload, total) {
+            const lines = cart.map((item, index) => `${index + 1}. ${item.name} x${item.qty} = ${rupiah.format(item.price * item.qty)}`).join("%0A");
+            const message = `Halo Pondok Es Teller ZR, saya ingin pesan:%0A${lines}%0A%0ATotal: ${encodeURIComponent(rupiah.format(total))}%0ANama: ${encodeURIComponent(orderPayload.customer_name)}%0AMetode: ${orderPayload.order_type}%0AAlamat: ${encodeURIComponent(orderPayload.address || "-")}%0ACatatan: ${encodeURIComponent(orderPayload.notes || "-")}`;
+            return `https://wa.me/6281374110444?text=${message}`;
+        }
+
+        function showOrderResult(type, title, body, waUrl) {
+            orderResult.style.display = "block";
+            orderResult.className = `result-box ${type === "error" ? "error" : ""}`;
+            orderResult.innerHTML = `
+                <strong>${escapeHtml(title)}</strong>
+                <p class="muted">${escapeHtml(body)}</p>
+                ${waUrl ? `<a class="btn btn-primary" href="${waUrl}" target="_blank" rel="noopener">Kirim Ringkasan ke WhatsApp Admin</a>` : ""}
+            `;
+        }
+
         document.addEventListener("click", (event) => {
             const filter = event.target.closest(".filter");
             if (filter) {
@@ -866,7 +1012,7 @@
         document.getElementById("orderForm").addEventListener("submit", async (event) => {
             event.preventDefault();
             if (!cart.length) {
-                alert("Keranjang masih kosong.");
+                showOrderResult("error", "Keranjang masih kosong", "Pilih minimal satu menu dulu sebelum checkout.", "");
                 return;
             }
             const form = new FormData(event.currentTarget);
@@ -880,15 +1026,22 @@
                 total_price: total,
                 status: "new"
             };
+            const waUrl = buildWhatsAppUrl(orderPayload, total);
 
             if (!db) {
-                alert("Supabase belum aktif. Isi supabase-config.js lebih dulu.");
+                showOrderResult("error", "Database belum tersambung", "Pesanan belum bisa disimpan ke Supabase, tapi ringkasannya tetap bisa dikirim lewat WhatsApp.", waUrl);
                 return;
             }
 
             const { data: order, error } = await db.from("orders").insert(orderPayload).select("id").single();
             if (error) {
-                alert(`Gagal menyimpan order: ${error.message}`);
+                showOrderResult(
+                    "error",
+                    "Pesanan belum tersimpan ke database",
+                    "Supabase menolak penyimpanan order. Jalankan file supabase/fix-order-rls.sql di SQL Editor, atau kirim pesanan via WhatsApp dulu.",
+                    waUrl
+                );
+                console.warn("Order insert failed:", error);
                 return;
             }
 
@@ -902,20 +1055,16 @@
             }));
             const { error: itemError } = await db.from("order_items").insert(items);
             if (itemError) {
-                alert(`Order tersimpan, tapi item gagal: ${itemError.message}`);
+                showOrderResult(
+                    "error",
+                    "Order masuk, item belum lengkap",
+                    "Order utama sudah tersimpan, tapi detail item ditolak Supabase. Jalankan fix RLS order_items, lalu cek dashboard admin.",
+                    waUrl
+                );
+                console.warn("Order item insert failed:", itemError);
                 return;
             }
-
-            const lines = cart.map((item, index) => `${index + 1}. ${item.name} x${item.qty} = ${rupiah.format(item.price * item.qty)}`).join("%0A");
-            const message = `Halo Pondok Es Teller ZR, saya ingin pesan:%0A${lines}%0A%0ATotal: ${encodeURIComponent(rupiah.format(total))}%0ANama: ${encodeURIComponent(orderPayload.customer_name)}%0AMetode: ${orderPayload.order_type}%0AAlamat: ${encodeURIComponent(orderPayload.address || "-")}%0ACatatan: ${encodeURIComponent(orderPayload.notes || "-")}`;
-            const waUrl = `https://wa.me/6281374110444?text=${message}`;
-
-            orderResult.style.display = "block";
-            orderResult.innerHTML = `
-                <strong>Order berhasil masuk ke Supabase.</strong>
-                <p class="muted">ID Order: ${escapeHtml(order.id)}</p>
-                <a class="btn btn-primary" href="${waUrl}" target="_blank" rel="noopener">Kirim Ringkasan ke WhatsApp Admin</a>
-            `;
+            showOrderResult("success", "Order berhasil masuk ke Supabase", `ID Order: ${order.id}. Lanjut kirim ringkasan ke WhatsApp admin untuk konfirmasi stok dan ongkir.`, waUrl);
             cart.splice(0, cart.length);
             renderCart();
             event.currentTarget.reset();
