@@ -1033,12 +1033,13 @@
                 return;
             }
 
-            const { data: order, error } = await db.from("orders").insert(orderPayload).select("id").single();
+            const orderId = crypto.randomUUID();
+            const { error } = await db.from("orders").insert([{ id: orderId, ...orderPayload }]);
             if (error) {
                 showOrderResult(
                     "error",
                     "Pesanan belum tersimpan ke database",
-                    "Supabase menolak penyimpanan order. Jalankan file supabase/fix-order-rls.sql di SQL Editor, atau kirim pesanan via WhatsApp dulu.",
+                    "Supabase masih menolak penyimpanan order. Jalankan file supabase/fix-order-rls-v2.sql di SQL Editor, atau kirim pesanan via WhatsApp dulu.",
                     waUrl
                 );
                 console.warn("Order insert failed:", error);
@@ -1046,7 +1047,7 @@
             }
 
             const items = cart.map((item) => ({
-                order_id: order.id,
+                order_id: orderId,
                 product_id: item.source === "products" ? item.id : null,
                 product_name: item.name,
                 qty: item.qty,
@@ -1064,7 +1065,7 @@
                 console.warn("Order item insert failed:", itemError);
                 return;
             }
-            showOrderResult("success", "Order berhasil masuk ke Supabase", `ID Order: ${order.id}. Lanjut kirim ringkasan ke WhatsApp admin untuk konfirmasi stok dan ongkir.`, waUrl);
+            showOrderResult("success", "Order berhasil masuk ke Supabase", `ID Order: ${orderId}. Lanjut kirim ringkasan ke WhatsApp admin untuk konfirmasi stok dan ongkir.`, waUrl);
             cart.splice(0, cart.length);
             renderCart();
             event.currentTarget.reset();
