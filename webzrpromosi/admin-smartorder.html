@@ -551,20 +551,60 @@
                     : db.from("menus").insert(menuPayload);
             }
 
-            let { error } = await saveMenu(payload);
-            if (error && String(error.message || "").includes("'category'")) {
-                const payloadWithoutCategory = { ...payload };
-                delete payloadWithoutCategory.category;
-                ({ error } = await saveMenu(payloadWithoutCategory));
-                if (!error) {
-                    document.getElementById("productStatus").textContent = "Menu berhasil disimpan. Catatan: kolom category belum ada di Supabase, jadi kategori tetap dibaca otomatis dari nama menu.";
+            async function saveMenuWithSchemaFallback(basePayload) {
+                const attempts = [];
+                const imageValue = basePayload.image;
+
+                attempts.push({
+                    note: "",
+                    payload: { ...basePayload }
+                });
+
+                attempts.push({
+                    note: "Catatan: kolom image belum ada, jadi gambar disimpan ke image_url.",
+                    payload: { ...basePayload, image_url: imageValue }
+                });
+                delete attempts[1].payload.image;
+
+                attempts.push({
+                    note: "Catatan: kolom category belum ada, jadi kategori tetap dibaca otomatis dari nama menu.",
+                    payload: { ...basePayload }
+                });
+                delete attempts[2].payload.category;
+
+                attempts.push({
+                    note: "Catatan: kolom image/category belum ada, jadi gambar disimpan ke image_url dan kategori dibaca otomatis dari nama menu.",
+                    payload: { ...basePayload, image_url: imageValue }
+                });
+                delete attempts[3].payload.image;
+                delete attempts[3].payload.category;
+
+                attempts.push({
+                    note: "Catatan: schema menus lama dipakai. Gambar/kategori dibaca dari data lama atau nama menu.",
+                    payload: { ...basePayload }
+                });
+                delete attempts[4].payload.image;
+                delete attempts[4].payload.category;
+
+                let lastError = null;
+                for (const attempt of attempts) {
+                    const { error } = await saveMenu(attempt.payload);
+                    if (!error) return { error: null, note: attempt.note };
+                    lastError = error;
+                    const message = String(error.message || "");
+                    const isSchemaError = message.includes("schema cache") || message.includes("Could not find");
+                    if (!isSchemaError) break;
                 }
-            } else {
-                document.getElementById("productStatus").textContent = error ? `Gagal simpan: ${error.message}` : "Menu berhasil disimpan dan tersambung ke landing/SmartOrder.";
+                return { error: lastError, note: "" };
             }
 
+            const { error, note } = await saveMenuWithSchemaFallback(payload);
             if (error) {
                 document.getElementById("productStatus").textContent = `Gagal simpan: ${error.message}`;
+            } else {
+                document.getElementById("productStatus").textContent = note
+                    ? `Menu berhasil disimpan. ${note}`
+                    : "Menu berhasil disimpan dan tersambung ke landing/SmartOrder.";
             }
             if (!error) {
                 event.currentTarget.reset();
