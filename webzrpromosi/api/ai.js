@@ -1,6 +1,8 @@
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
 const OPENAI_CHAT_API_URL = "https://api.openai.com/v1/chat/completions";
+const GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
 const DEFAULT_MODEL = "gpt-4.1-mini";
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -38,6 +40,16 @@ function extractOutputText(data) {
 
 function extractChatOutputText(data) {
   return String(data.choices?.[0]?.message?.content || "").trim();
+}
+
+function extractGeminiOutputText(data) {
+  const chunks = [];
+  for (const candidate of data.candidates || []) {
+    for (const part of candidate.content?.parts || []) {
+      if (typeof part.text === "string") chunks.push(part.text);
+    }
+  }
+  return chunks.join("\n").trim();
 }
 
 function getErrorMessage(data, fallback = "AI provider error") {
@@ -142,6 +154,10 @@ function uniqueModels(primary) {
   return [...new Set([primary, DEFAULT_MODEL, "gpt-4o-mini", "gpt-4o"].filter(Boolean))];
 }
 
+function uniqueGeminiModels(primary) {
+  return [...new Set([primary, DEFAULT_GEMINI_MODEL, "gemini-2.5-flash-lite", "gemini-2.0-flash"].filter(Boolean))];
+}
+
 async function callResponsesApi(apiKey, model, feature, prompt) {
   const response = await fetch(OPENAI_API_URL, {
     method: "POST",
@@ -195,6 +211,39 @@ async function callChatApi(apiKey, model, feature, prompt) {
   return { ok: true, result: extractChatOutputText(data), model: data.model || model };
 }
 
+async function callGeminiApi(apiKey, model, feature, prompt) {
+  const response = await fetch(`${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      systemInstruction: {
+        parts: [
+          {
+            text: "Kamu membantu UMKM kuliner Indonesia. Analisis data yang diberikan, jaga jawaban faktual, jangan mengarang data, dan selalu pakai database/context yang diberikan."
+          }
+        ]
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: prompt }]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: feature === "sales-insight" ? 760 : 480
+      }
+    })
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    return { ok: false, status: response.status, message: getErrorMessage(data), data };
+  }
+  return { ok: true, result: extractGeminiOutputText(data), model, provider: "gemini" };
+}
+
 async function runAi(apiKey, feature, prompt) {
   const requestedModel = process.env.AI_MODEL || process.env.OPENAI_MODEL || DEFAULT_MODEL;
   const models = uniqueModels(requestedModel);
@@ -208,6 +257,48 @@ async function runAi(apiKey, feature, prompt) {
     const chatResult = await callChatApi(apiKey, model, feature, prompt);
     if (chatResult.ok && chatResult.result) return chatResult;
     errors.push(`chat:${model}:${chatResult.status || "no-status"}:${chatResult.message || "empty output"}`);
+  }
+
+  return { ok: false, message: errors.slice(-2).join(" | "), errors };
+}
+
+async function runGemini(apiKey, feature, prompt) {
+  const aiModel = cleanText(process.env.AI_MODEL, 80);
+  const requestedModel = process.env.GEMINI_MODEL || (aiModel.startsWith("gemini") ? aiModel : DEFAULT_GEMINI_MODEL);
+  const models = uniqueGeminiModels(requestedModel);
+  const errors = [];
+
+  for (const model of models) {
+    const result = await callGeminiApi(apiKey, model, feature, prompt);
+    if (result.ok && result.result) return result;
+    errors.push(`gemini:${model}:${result.status || "no-status"}:${result.message || "empty output"}`);
+  }
+
+  return { ok: false, message: errors.slice(-2).join(" | "), errors };
+}
+
+async function runConfiguredAi(feature, prompt) {
+  const provider = cleanText(process.env.AI_PROVIDER, 40).toLowerCase();
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openAiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
+  const errors = [];
+
+  if (geminiKey && (provider === "gemini" || !openAiKey)) {
+    const geminiResult = await runGemini(geminiKey, feature, prompt);
+    if (geminiResult.ok) return geminiResult;
+    errors.push(...(geminiResult.errors || [geminiResult.message]));
+  }
+
+  if (openAiKey) {
+    const openAiResult = await runAi(openAiKey, feature, prompt);
+    if (openAiResult.ok) return { ...openAiResult, provider: "openai" };
+    errors.push(...(openAiResult.errors || [openAiResult.message]));
+  }
+
+  if (geminiKey && provider !== "gemini") {
+    const geminiResult = await runGemini(geminiKey, feature, prompt);
+    if (geminiResult.ok) return geminiResult;
+    errors.push(...(geminiResult.errors || [geminiResult.message]));
   }
 
   return { ok: false, message: errors.slice(-2).join(" | "), errors };
@@ -250,9 +341,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const apiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    send(res, 503, { error: "AI belum aktif. Set AI_API_KEY di Vercel Environment Variables." });
+  if (!process.env.GEMINI_API_KEY && !process.env.AI_API_KEY && !process.env.OPENAI_API_KEY) {
+    send(res, 503, { error: "AI belum aktif. Set GEMINI_API_KEY atau OPENAI_API_KEY di Vercel Environment Variables." });
     return;
   }
 
@@ -266,19 +356,19 @@ module.exports = async function handler(req, res) {
   const prompt = buildPrompt(feature, body);
 
   try {
-    const aiResult = await runAi(apiKey, feature, prompt);
+    const aiResult = await runConfiguredAi(feature, prompt);
     if (!aiResult.ok) {
       console.error("AI provider error:", aiResult.errors || aiResult.message);
       send(res, 502, {
         error: "AI server belum berhasil memproses data.",
-        detail: aiResult.message || "Cek OPENAI_API_KEY, billing/credit OpenAI, dan akses model di Vercel."
+        detail: aiResult.message || "Cek GEMINI_API_KEY/OPENAI_API_KEY, nama model, dan environment Production di Vercel."
       });
       return;
     }
 
     const result = aiResult.result || "AI belum menghasilkan jawaban. Coba ulangi dengan input lebih jelas.";
     await logToSupabase(feature, prompt, result, cleanText(body.userId, 80));
-    send(res, 200, { result, feature, model: aiResult.model });
+    send(res, 200, { result, feature, model: aiResult.model, provider: aiResult.provider || "openai" });
   } catch (error) {
     console.error("AI endpoint error:", error);
     send(res, 500, { error: "Server AI belum bisa memproses permintaan.", detail: cleanText(error.message, 300) });
