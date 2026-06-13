@@ -212,6 +212,15 @@ async function callChatApi(apiKey, model, feature, prompt) {
 }
 
 async function callGeminiApi(apiKey, model, feature, prompt) {
+  const generationConfig = {
+    temperature: 0.7,
+    maxOutputTokens: feature === "sales-insight" ? 1600 : 720
+  };
+
+  if (model.startsWith("gemini-2.5")) {
+    generationConfig.thinkingConfig = { thinkingBudget: 0 };
+  }
+
   const response = await fetch(`${GEMINI_API_BASE_URL}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`, {
     method: "POST",
     headers: {
@@ -231,10 +240,7 @@ async function callGeminiApi(apiKey, model, feature, prompt) {
           parts: [{ text: prompt }]
         }
       ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: feature === "sales-insight" ? 760 : 480
-      }
+      generationConfig
     })
   });
   const data = await response.json();
