@@ -1482,6 +1482,24 @@
             font-weight: 700;
         }
 
+        .ai-close {
+            flex: 0 0 auto;
+            width: 36px;
+            height: 36px;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .ai-close:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+
         .ai-content {
             padding: 16px;
             max-height: 400px;
@@ -2180,13 +2198,13 @@
         @media (max-width: 640px) {
             .ai-window {
                 right: 11px;
-                bottom: 88px;
+                bottom: 100px;
                 width: calc(100vw - 22px);
-                max-height: min(72vh, 560px);
+                max-height: min(70vh, 560px);
             }
 
             .ai-content {
-                max-height: 52vh;
+                max-height: 48vh;
             }
 
             .ai-assist-btn {
@@ -3232,6 +3250,7 @@
                 <strong>AE Assistant</strong>
                 <span class="ai-status" id="aiStatus">Virtual helper Esteller ZR</span>
             </div>
+            <button class="ai-close" id="aiClose" type="button" aria-label="Tutup chat AE">X</button>
         </div>
         <div class="ai-content" id="aiContent">
             <div class="ai-msg bot">Halo, saya AE. Saya siap bantu rekomendasikan minuman segar Esteller ZR, cek menu, harga, lokasi, jam buka, dan menu hemat.</div>
@@ -3496,7 +3515,6 @@
             // Default terakhir
             return "foto2/estelleroriginal.webp";
         }
-
         function normalizeMenu(menu) {
             const inferredCategory = inferMenuCategory(menu);
             const rawImage = menu.image_url || menu.image || "";
@@ -3979,6 +3997,7 @@
         const aiSendBtn = document.getElementById("aiSendBtn");
         const aiTyping = document.getElementById("aiTyping");
         const aiStatus = document.getElementById("aiStatus");
+        const aiClose = document.getElementById("aiClose");
         const aeHistory = [];
         const MENU_TAGS = {
             "Es Teller Original": ["segar", "hemat", "classic"],
@@ -3998,6 +4017,11 @@
                 aiInput.focus();
                 trackEvent("ae_chat_open");
             }
+        });
+
+        aiClose.addEventListener("click", () => {
+            aiWindow.classList.remove("show-ai");
+            aiBtn.setAttribute("aria-expanded", "false");
         });
 
         // ==========================================
