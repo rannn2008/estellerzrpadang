@@ -3226,7 +3226,7 @@
         </div>
     </div>
 
-        <div class="ai-window" id="aiWindow">
+    <div class="ai-window" id="aiWindow">
         <div class="ai-header">
             <div class="ai-title">
                 <strong>AE Assistant</strong>
@@ -3265,6 +3265,7 @@
 
     <script src="supabase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="smart-ai-chatbot.js"></script>
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
@@ -3473,17 +3474,46 @@
             return category || "lainnya";
         }
 
+        function getDefaultImageByCategory(menu) {
+            const name = String(menu.name || "").toLowerCase();
+            const category = String(menu.category || "").toLowerCase();
+
+            // Cocokkan berdasarkan nama dulu (lebih spesifik)
+            if (name.includes("alpukat")) return "foto2/alpukat-segar.jpg.webp";
+            if (name.includes("durian") || name.includes("jumbo") || name.includes("original") || name.includes("teller") || name.includes("teler")) return "foto2/estelleroriginal.webp";
+            if (name.includes("campur") || name.includes("es campur")) return "foto2/buah-segar.jpg.webp";
+            if (name.includes("sop buah") || name.includes("sopbuah")) return "foto2/galeri/buah-segar.webp";
+            if (name.includes("rumput laut")) return "foto2/galeri/display-esteller.webp";
+            if (name.includes("paket") || name.includes("keluarga")) return "foto2/galeri/menu-juga.webp";
+
+            // Fallback berdasarkan kategori
+            if (category.includes("es teller")) return "foto2/estelleroriginal.webp";
+            if (category.includes("es campur")) return "foto2/buah-segar.jpg.webp";
+            if (category.includes("sop buah")) return "foto2/galeri/buah-segar.webp";
+            if (category.includes("rumput laut")) return "foto2/galeri/display-esteller.webp";
+            if (category.includes("paket")) return "foto2/galeri/menu-juga.webp";
+
+            // Default terakhir
+            return "foto2/estelleroriginal.webp";
+        }
+
         function normalizeMenu(menu) {
+            const inferredCategory = inferMenuCategory(menu);
+            const rawImage = menu.image_url || menu.image || "";
+            // Gunakan fallback lokal jika image kosong atau hanya spasi
+            const resolvedImage = rawImage.trim()
+                ? rawImage
+                : getDefaultImageByCategory({ name: menu.name, category: inferredCategory });
             return {
                 id: menu.id || "",
                 name: menu.name,
                 price: Number(menu.price || 0),
                 description: menu.description || "",
-                image: menu.image_url || menu.image || "",
+                image: resolvedImage,
                 rating: menu.rating || "4.8",
                 badges: Array.isArray(menu.badges) ? menu.badges : [],
                 status: menu.status || "Tersedia",
-                category: inferMenuCategory(menu)
+                category: inferredCategory
             };
         }
 
@@ -3559,6 +3589,10 @@
                 console.warn("Gagal memuat menu, pakai default:", error);
             }
             currentMenus = menus; // Update data global
+            // Perbarui data menu pada chatbot jika sudah diinisialisasi
+            if (window.smartBot && typeof window.smartBot.updateMenus === 'function') {
+                window.smartBot.updateMenus(currentMenus);
+            }
             updateAiOptions(); // Update opsi AI
 
             const filteredMenus = filterCategory === "all" 
@@ -3584,7 +3618,7 @@
                 return `
                     <article class="menu-card reveal">
                         ${bestSellerHTML}
-                        <img class="menu-photo" src="${escapeHtml(menu.image)}" alt="${escapeHtml(getMenuImageAlt(menu))}">
+                        <img class="menu-photo" src="${escapeHtml(menu.image)}" alt="${escapeHtml(getMenuImageAlt(menu))}" onerror="this.onerror=null;this.src='${escapeHtml(getDefaultImageByCategory(menu))}'">
                         <div class="menu-body">
                             <div class="menu-title">
                                 <h3>${escapeHtml(menu.name)}</h3>
@@ -3972,7 +4006,17 @@
         let smartBot = null;
 
         function initSmartChatbot() {
-            smartBot = null;
+            try {
+                if (typeof SmartChatbot !== 'undefined') {
+                    smartBot = new SmartChatbot(currentMenus);
+                    window.smartBot = smartBot;
+                    console.log('\u2705 Smart AI Chatbot initialized with', currentMenus.length, 'menus');
+                } else {
+                    console.warn('\u26a0\ufe0f SmartChatbot class not loaded, using local fallback');
+                }
+            } catch (error) {
+                console.error('\u274c Error initializing chatbot:', error);
+            }
         }
 
         function normalizeChatText(value) {
@@ -4005,7 +4049,6 @@
                 text.includes("keluarga") || text.includes("jumbo") || text.includes("ramai") ? "ramai" : "",
                 text.includes("best") || parseFloat(menu.rating || 0) >= 4.9 ? "bestSeller" : ""
             ].filter(Boolean);
-
             return { ...menu, tags: [...new Set([...baseTags, ...inferred])] };
         }
 

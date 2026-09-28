@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poster Promosi Pondok Es Teller ZR</title>
+    <style>
+        :root {
+            --leaf: #12733f;
+            --leaf-dark: #06412a;
+            --mint: #ddf4d6;
+            --sun: #f7b742;
+            --mango: #f08a2b;
+            --guava: #ee654a;
+            --cream: #fff8e6;
+            --paper: #fffef8;
+            --ink: #073522;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: #d9d5c8;
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            color: var(--ink);
+        }
+
+        .poster {
+            position: relative;
+            width: min(1080px, 100vw);
+            aspect-ratio: 1080 / 1528;
+            overflow: hidden;
+            background:
+                linear-gradient(142deg, rgba(255, 254, 248, .95) 0 42%, rgba(221, 244, 214, .92) 42% 100%),
+                url("../foto2/buah-segar.jpg.jpg") center / cover;
+            box-shadow: 0 30px 90px rgba(6, 65, 42, .24);
+        }
+
+        .poster::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(255, 248, 230, .88), rgba(255, 255, 255, .42)),
+                radial-gradient(circle at 84% 8%, rgba(247, 183, 66, .32), transparent 22%),
+                radial-gradient(circle at 11% 87%, rgba(18, 115, 63, .18), transparent 28%);
+        }
+
+        .poster::after {
+            content: "";
+            position: absolute;
+            inset: 28px;
+            border: 2px solid rgba(6, 65, 42, .14);
+            pointer-events: none;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            padding: 54px 64px 52px;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            gap: 24px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .brand img {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 14px 32px rgba(6, 65, 42, .16);
+        }
+
+        .brand-name {
+            font-size: 35px;
+            line-height: 1.04;
+            font-weight: 950;
+            letter-spacing: 0;
+            color: var(--leaf-dark);
+        }
+
+        .brand-sub {
+            margin-top: 8px;
+            font-size: 19px;
+            font-weight: 800;
+            color: rgba(7, 53, 34, .72);
+        }
+
+        .open-pill {
+            padding: 13px 17px;
+            border-radius: 999px;
+            background: var(--leaf-dark);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 900;
+            box-shadow: 0 12px 28px rgba(6, 65, 42, .18);
+            white-space: nowrap;
+        }
+
+        .hero {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 392px;
+            gap: 28px;
+            align-items: center;
+        }
+
+        .copy {
+            padding-top: 8px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 16px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid rgba(18, 115, 63, .18);
+            color: var(--leaf-dark);
+            font-size: 18px;
+            font-weight: 900;
+            box-shadow: 0 10px 26px rgba(6, 65, 42, .08);
+        }
+
+        .tag span {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--sun);
+            box-shadow: 0 0 0 6px rgba(247, 183, 66, .2);
+        }
+
+        h1 {
+            margin: 26px 0 18px;
+            max-width: 535px;
+            font-size: 80px;
+            line-height: .91;
+            letter-spacing: 0;
+            color: var(--leaf-dark);
+        }
+
+        .lead {
+            max-width: 505px;
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.25;
+            font-weight: 800;
+            color: rgba(7, 53, 34, .82);
+        }
+
+        .price-band {
+            width: max-content;
+            display: grid;
+            grid-template-columns: auto auto;
+            align-items: center;
+            gap: 16px;
+            margin-top: 28px;
+            padding: 14px 22px 16px;
+            border-radius: 8px;
+            background: var(--leaf-dark);
+            color: #fff;
+            box-shadow: 0 18px 42px rgba(6, 65, 42, .22);
+        }
+
+        .price-band small {
+            display: block;
+            font-size: 17px;
+            font-weight: 850;
+            color: rgba(255, 255, 255, .78);
+        }
+
+        .price-band strong {
+            display: block;
+            font-size: 43px;
+            line-height: 1;
+        }
+
+        .proof {
+            display: flex;
+            gap: 10px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .proof span {
+            padding: 10px 13px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .82);
+            border: 1px solid rgba(18, 115, 63, .14);
+            font-size: 17px;
+            font-weight: 850;
+            color: rgba(7, 53, 34, .72);
+        }
+
+        .visual {
+            position: relative;
+            min-height: 645px;
+        }
+
+        .photo-main {
+            position: absolute;
+            inset: 24px 0 auto auto;
+            width: 392px;
+            height: 548px;
+            object-fit: cover;
+            border-radius: 220px 220px 8px 8px;
+            border: 14px solid rgba(255, 255, 255, .82);
+            box-shadow: 0 28px 70px rgba(6, 65, 42, .24);
+        }
+
+        .fresh-card {
+            position: absolute;
+            left: -58px;
+            bottom: 38px;
+            width: 258px;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+            box-shadow: 0 20px 48px rgba(6, 65, 42, .18);
+            transform: rotate(-3deg);
+        }
+
+        .fresh-card img {
+            width: 100%;
+            height: 154px;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+        }
+
+        .fresh-card strong {
+            display: block;
+            margin-top: 10px;
+            font-size: 17px;
+            line-height: 1.2;
+            color: var(--leaf-dark);
+        }
+
+        .burst {
+            position: absolute;
+            right: 0;
+            bottom: 6px;
+            width: 158px;
+            height: 158px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--sun);
+            color: var(--leaf-dark);
+            text-align: center;
+            font-size: 21px;
+            line-height: 1.05;
+            font-weight: 950;
+            box-shadow: 0 18px 42px rgba(240, 138, 43, .34);
+            transform: rotate(6deg);
+        }
+
+        .menu-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: -16px;
+        }
+
+        .menu {
+            min-height: 126px;
+            padding: 18px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .9);
+            border: 1px solid rgba(18, 115, 63, .15);
+            box-shadow: 0 12px 28px rgba(6, 65, 42, .09);
+        }
+
+        .menu strong {
+            display: block;
+            min-height: 46px;
+            font-size: 18px;
+            line-height: 1.18;
+            color: var(--leaf-dark);
+        }
+
+        .menu span {
+            display: block;
+            margin-top: 14px;
+            font-size: 24px;
+            line-height: 1;
+            font-weight: 950;
+            color: var(--guava);
+        }
+
+        .bottom {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 224px;
+            gap: 28px;
+            align-items: end;
+            padding-top: 4px;
+        }
+
+        .info {
+            display: grid;
+            gap: 14px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            font-size: 21px;
+            line-height: 1.2;
+            font-weight: 850;
+            color: rgba(7, 53, 34, .86);
+        }
+
+        .info-row i {
+            flex: 0 0 auto;
+            width: 33px;
+            height: 33px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: rgba(247, 183, 66, .18);
+            font-style: normal;
+            color: var(--mango);
+            font-size: 18px;
+        }
+
+        .qr-card {
+            padding: 14px;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 18px 44px rgba(6, 65, 42, .16);
+            text-align: center;
+        }
+
+        .qr-card img {
+            width: 100%;
+            display: block;
+        }
+
+        .qr-card strong {
+            display: block;
+            margin-top: 9px;
+            font-size: 19px;
+            color: var(--leaf-dark);
+        }
+
+        .qr-card div {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 900;
+            color: rgba(7, 53, 34, .62);
+            overflow-wrap: anywhere;
+        }
+
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .poster {
+                width: 100vw;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="poster" aria-label="Poster promosi Pondok Es Teller ZR">
+        <div class="content">
+            <header class="topbar">
+                <div class="brand">
+                    <img src="../foto2/logo_zr.png" alt="Logo Pondok Es Teller ZR">
+                    <div>
+                        <div class="brand-name">Pondok Es Teller ZR</div>
+                        <div class="brand-sub">Es teller segar di Kalumbuk, Padang</div>
+                    </div>
+                </div>
+                <div class="open-pill">Buka 10.00 - 22.00</div>
+            </header>
+
+            <section class="hero">
+                <div class="copy">
+                    <div class="tag"><span></span>Favorit buat cuaca Padang</div>
+                    <h1>Segar, Creamy, Bikin Nagih</h1>
+                    <p class="lead">Nikmati es teller alpukat, sop buah, dan minuman segar dengan buah pilihan dan rasa manis yang pas.</p>
+                    <div class="price-band">
+                        <small>Harga mulai</small>
+                        <strong>Rp12.000</strong>
+                    </div>
+                    <div class="proof">
+                        <span>Buah segar</span>
+                        <span>Alpukat creamy</span>
+                        <span>Bisa pesan via WhatsApp</span>
+                    </div>
+                </div>
+
+                <div class="visual">
+                    <img class="photo-main" src="../foto2/estelleroriginal.jpg" alt="Es teller original Pondok Es Teller ZR">
+                    <div class="fresh-card">
+                        <img src="../foto2/kedai-depan.jpg.jpg" alt="Tampak depan Pondok Es Teller ZR">
+                        <strong>Mampir langsung atau pesan online</strong>
+                    </div>
+                    <div class="burst">Scan QR<br>Lihat Menu</div>
+                </div>
+            </section>
+
+            <section>
+                <div class="menu-strip" aria-label="Menu unggulan">
+                    <div class="menu"><strong>Es Teller Original</strong><span>Rp12.000</span></div>
+                    <div class="menu"><strong>Es Teller Alpukat Spesial</strong><span>Rp16.000</span></div>
+                    <div class="menu"><strong>Es Teller Durian</strong><span>Rp18.000</span></div>
+                    <div class="menu"><strong>Paket Keluarga</strong><span>Rp55.000</span></div>
+                </div>
+
+                <footer class="bottom">
+                    <div class="info">
+                        <div class="info-row"><i>1</i><span>Jl. Kalumbuk No21, Kota Padang</span></div>
+                        <div class="info-row"><i>2</i><span>WhatsApp: 0813-7411-0444 / 0813-6348-9111</span></div>
+                        <div class="info-row"><i>3</i><span>Scan QR untuk buka website, lihat menu, lokasi, dan pesan</span></div>
+                    </div>
+                    <div class="qr-card">
+                        <img src="qr-estellerzrpadang.png" alt="QR website Pondok Es Teller ZR">
+                        <strong>Scan Sekarang</strong>
+                        <div>estellerzrpadang.vercel.app</div>
+                    </div>
+                </footer>
+            </section>
+        </div>
+    </main>
+</body>
+
+</html>
